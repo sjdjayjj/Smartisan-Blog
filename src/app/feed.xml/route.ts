@@ -2,7 +2,7 @@ import { loadPosts } from "@/lib/github";
 import { categoryMeta, site } from "@/lib/site";
 import { absoluteUrl, siteUrl } from "@/lib/seo";
 
-/** RSS 2.0 订阅源：文章内容聚合在首页阅读，guid 用 slug 保持稳定。 */
+/** RSS 2.0 订阅源：link 指向首页的文章深链，guid 用 slug 保持稳定。 */
 
 function escapeXml(value: string): string {
   return value
@@ -26,7 +26,7 @@ export async function GET() {
       return [
         "    <item>",
         `      <title>${escapeXml(post.title)}</title>`,
-        `      <link>${absoluteUrl("/")}</link>`,
+        `      <link>${absoluteUrl(`/?post=${encodeURIComponent(post.slug)}`)}</link>`,
         `      <guid isPermaLink="false">smartisan-blog:${escapeXml(post.slug)}</guid>`,
         `      <pubDate>${toRfc822(post.date)}</pubDate>`,
         `      <category>${escapeXml(meta.label)}</category>`,

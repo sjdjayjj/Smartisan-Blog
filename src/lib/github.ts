@@ -244,7 +244,12 @@ async function listRemote(dir: string): Promise<GithubContentItem[]> {
       `/repos/${config.repo}/contents/${dir}?ref=${encodeURIComponent(config.branch)}&per_page=${PER_PAGE}&page=${page}`,
       { revalidate: 60 }
     );
-    if (response.status === 404) break;
+    // 目录 404 说明路径配置错误，按内容源异常处理；目录存在但为空（200 + []）才是正常
+    if (response.status === 404) {
+      throw new Error(
+        `GitHub 内容目录不存在：${config.repo}@${config.branch}/${dir}（404）`
+      );
+    }
     if (!response.ok) throw new Error(`GitHub 目录读取失败：${response.status}`);
     const batch = (await response.json()) as GithubContentItem[] | GithubContentItem;
     // 目标路径是单个文件时返回对象而不是数组，直接停止
