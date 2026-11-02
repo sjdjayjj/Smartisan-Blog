@@ -4,7 +4,7 @@
 
 > “圆滑当道时代的锐利异类。”
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fsjdjyjj%2Fsmartisan-blog&project-name=smartisan-blog&repository-name=smartisan-blog&env=GITHUB_OAUTH_CLIENT_ID,GITHUB_OAUTH_CLIENT_SECRET,AUTH_SECRET,ADMIN_GITHUB_LOGINS,SITE_URL,BLOG_REPO,BLOG_GITHUB_TOKEN,BLOG_BRANCH,R2_ACCOUNT_ID,R2_ACCESS_KEY_ID,R2_SECRET_ACCESS_KEY,R2_BUCKET,R2_PUBLIC_BASE_URL)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fsjdjayjj%2Fsmartisan-blog&project-name=smartisan-blog&repository-name=smartisan-blog&env=GITHUB_OAUTH_CLIENT_ID,GITHUB_OAUTH_CLIENT_SECRET,AUTH_SECRET,ADMIN_GITHUB_LOGINS,SITE_URL,BLOG_REPO,BLOG_GITHUB_TOKEN,BLOG_BRANCH,R2_ACCOUNT_ID,R2_ACCESS_KEY_ID,R2_SECRET_ACCESS_KEY,R2_BUCKET,R2_PUBLIC_BASE_URL)
 
 一键部署会自动 Fork 仓库并逐项询问环境变量，**所有凭据只从环境变量读取，代码中没有任何硬编码**。
 
