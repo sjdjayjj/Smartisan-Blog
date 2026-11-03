@@ -5,7 +5,8 @@
  * 用法：npm run fonts:og
  *
  * 产物：
- * - public/fonts/noto-serif-sc-og/noto-serif-sc-og.woff（单字重 700，供 ImageResponse 使用）
+ * - assets/fonts/noto-serif-sc-og.woff（单字重 700，供 ImageResponse 使用；放在 public/ 之外的
+ *   assets/，由 next.config.ts 的 outputFileTracingIncludes 纳入 serverless 函数 bundle）
  * - src/lib/og-font-coverage.json（覆盖码点区间，OG 路由据此判断标题是否需要回退根图）
  *
  * 覆盖范围刻意只到 GB2312 一级：她覆盖绝大多数标题用字，又不会让单个资源膨胀到数 MB；
@@ -19,7 +20,7 @@ import path from "node:path";
 import subsetFont from "subset-font";
 
 const ROOT = process.cwd();
-const OUT_DIR = path.join(ROOT, "public/fonts/noto-serif-sc-og");
+const OUT_DIR = path.join(ROOT, "assets/fonts");
 const COVERAGE_PATH = path.join(ROOT, "src/lib/og-font-coverage.json");
 const FONT_URL =
   "https://raw.githubusercontent.com/google/fonts/main/ofl/notoserifsc/NotoSerifSC%5Bwght%5D.ttf";

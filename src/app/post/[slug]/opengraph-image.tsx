@@ -17,9 +17,11 @@ export const alt = "文章分享图 · 理想主义者的自留地";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
+// 字体放在 public/ 之外的 assets/：Vercel 只把 public/ 当静态资源分发，
+// serverless 函数运行时读不到，必须靠 next.config.ts 的文件追踪纳入函数 bundle。
 const FONT_PATH = path.join(
   /*turbopackIgnore: true*/ process.cwd(),
-  "public/fonts/noto-serif-sc-og/noto-serif-sc-og.woff"
+  "assets/fonts/noto-serif-sc-og.woff"
 );
 const RANGES: number[][] = coverage.ranges;
 
