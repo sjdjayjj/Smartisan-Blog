@@ -4,7 +4,7 @@
 
 > “圆滑当道时代的锐利异类。”
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fsjdjayjj%2Fsmartisan-blog&project-name=smartisan-blog&repository-name=smartisan-blog&env=GITHUB_OAUTH_CLIENT_ID,GITHUB_OAUTH_CLIENT_SECRET,AUTH_SECRET,ADMIN_GITHUB_LOGINS,SITE_URL,BLOG_REPO,BLOG_GITHUB_TOKEN,BLOG_BRANCH,R2_ACCOUNT_ID,R2_ACCESS_KEY_ID,R2_SECRET_ACCESS_KEY,R2_BUCKET,R2_PUBLIC_BASE_URL)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fsjdjayjj%2Fsmartisan-blog&project-name=smartisan-blog&repository-name=smartisan-blog&env=GITHUB_OAUTH_CLIENT_ID,GITHUB_OAUTH_CLIENT_SECRET,AUTH_SECRET,ADMIN_GITHUB_LOGINS,SITE_URL,BLOG_REPO,BLOG_GITHUB_TOKEN,BLOG_BRANCH,BLOG_POSTS_DIR,BLOG_NOTES_DIR,R2_ACCOUNT_ID,R2_ACCESS_KEY_ID,R2_SECRET_ACCESS_KEY,R2_BUCKET,R2_PUBLIC_BASE_URL)
 
 一键部署会自动 Fork 仓库并逐项询问环境变量，**所有凭据只从环境变量读取，代码中没有任何硬编码**。
 
@@ -67,7 +67,7 @@ Noto Serif SC 走自托管子集（见 [fonts.css](src/app/fonts.css)）：`core
 - **触感声效开关**：导航栏右侧的物理开关，用 Web Audio API 实时合成机械“咔哒”声；状态切换会写入 `localStorage`。
 - **全局点击音**：`SoundEffects` 通过事件委托监听 `.st-btn` 与 `.category-btn`，每次点击播放不同频率的短促机械声。
 - **分类筛选**：全部 / 产品美学 / 系统折腾 / 思考与架构，即时过滤九宫格，按钮带按压反馈。
-- **文章弹窗**：点击卡片打开阅读层，正文由自研 `MarkdocContent` 渲染（支持图片与 `<video>` / `<audio>` 原生媒体标签）；支持 `Esc`、点击遮罩、右上角按钮三种关闭方式，打开时锁定页面滚动。
+- **文章阅读**：服务端 Markdoc 渲染独立页（`/post/[slug]`），首页弹窗按需加载同一份 AST 并在客户端渲染（支持图片与 `<video>` / `<audio>` 原生媒体标签）；支持 `Esc`、点击遮罩、右上角按钮三种关闭方式，打开时锁定页面滚动。
 - **阅读辅助**：弹窗内提供目录（TOC，锚点偏移随字体加载重算）、阅读位置记忆、游标卡尺式的字号 / 行距调节、上下篇跳转，以及 `navigator.share` 分享；`?post=slug` 可直接深链到某篇文章。
 - **便签长图**：置顶便签可展开为“锤子便签”风格弹窗，一键复制纯文本到剪贴板并弹出 Toast；“导出便签长图 PNG”用 Canvas 直绘 750px 长图（不依赖 DOM 截图库，避免字体加载与跨域图片的不确定性）。
 - **阅读进度与回顶**：顶部细红线随滚动伸长；右下角水平仪浮标可一键回顶。
@@ -95,7 +95,7 @@ Noto Serif SC 走自托管子集（见 [fonts.css](src/app/fonts.css)）：`core
 
 ## 四、快速开始
 
-要求 Node.js 20 以上。
+要求 Node.js 20.9 以上（`.nvmrc` 默认 24）。
 
 ```bash
 npm install
@@ -115,7 +115,10 @@ npm run start
 
 ```bash
 npm run lint
+npx tsc --noEmit      # 克隆后请先 npm run build：next-env.d.ts 由构建生成，且未入库
 ```
+
+CI（GitHub Actions）在每次 push / PR 时依次执行 `npm run build` → `npx tsc --noEmit` → `npm run lint`。CI 不配置内容仓凭据，构建走本地 `src/content` 回退路径。
 
 ---
 
@@ -124,9 +127,12 @@ npm run lint
 ```
 .
 ├── .env.example                 # 全部环境变量示例（复制为 .env.local）
+├── .nvmrc                       # Node 版本（CI 与本地一致）
+├── LICENSE                      # MIT
 ├── keystatic.config.ts          # Keystatic 内容模型（可选后台）
-├── next.config.ts               # Cache Components / Turbopack 配置
+├── next.config.ts               # Cache Components / Turbopack / 文件追踪配置
 ├── src
+│   ├── proxy.ts                 # 请求代理（内容加载与鉴权入口）
 │   ├── app
 │   │   ├── globals.css          # 设计令牌 + 拟物组件样式 + 动效
 │   │   ├── layout.tsx           # 字体、metadata、全局壳层
@@ -148,13 +154,17 @@ npm run lint
 │   │   ├── keystatic/...        # Keystatic 管理后台（可选）
 │   │   ├── robots.ts            # robots.txt
 │   │   ├── sitemap.ts           # sitemap.xml
-│   │   ├── feed.xml/route.ts    # RSS 订阅
+│   │   ├── feed.xml/route.ts    # RSS 订阅（含 content:encoded 全文）
+│   │   ├── post/[slug]/page.tsx # 文章独立页（SSR、JSON-LD、metadata）
+│   │   ├── post/[slug]/opengraph-image.tsx  # 逐篇分享图（缺字时回退根图）
 │   │   └── opengraph-image.tsx  # 默认社交分享图
 │   ├── components
 │   │   ├── Navbar.tsx           # 细红线头部、导航、触感开关、工坊入口
 │   │   ├── Hero.tsx             # 个人卡片、统计凹槽
 │   │   ├── FeaturedNote.tsx     # 置顶便签卡片（含火漆正印落款）
 │   │   ├── ArticleGrid.tsx      # 九宫格、分类筛选、文章阅读弹窗
+│   │   ├── ArticleBody.tsx      # 正文壳层（标题 / 元信息 / TOC / 正文）
+│   │   ├── PostReader.tsx       # 独立页阅读器（字号、阅读灯、回顶）
 │   │   ├── MarkdocContent.tsx   # Markdoc AST → React 的轻量渲染器
 │   │   ├── Gadget.tsx           # 工匠电台（滚花旋钮 + 粉红噪声）
 │   │   ├── NoteModal.tsx        # 便签弹窗、复制正文、导出长图
@@ -175,6 +185,8 @@ npm run lint
 │   ├── lib
 │   │   ├── auth.ts              # OAuth、白名单、HMAC 会话 Cookie
 │   │   ├── github.ts            # 文章读写、frontmatter、Markdoc 转换
+│   │   ├── post-source.ts       # 内容源选择（GitHub 仓库 / 本地回退）
+│   │   ├── headings.ts          # 正文标题提取与锚点 id
 │   │   ├── notes.ts             # 便签读写、分享文本、默认值
 │   │   ├── noteImage.ts         # 便签长图的 Canvas 直绘（750px PNG）
 │   │   ├── waxSeal.ts           # 火漆印几何与压印文字排版（SVG / Canvas 共用）
@@ -183,7 +195,8 @@ npm run lint
 │   │   ├── audio.ts             # AudioContext、点击音、粉红噪声、静音偏好
 │   │   ├── clipboard.ts         # 复制兜底（Clipboard API → execCommand）
 │   │   ├── bus.ts               # 轻量事件总线（打开便签 / 弹出 Toast）
-│   │   ├── seo.ts               # metadata、JSON-LD、RSS 共用拼装
+│   │   ├── seo.ts               # 站点绝对地址、日期、JSON-LD 拼装
+│   │   ├── og-font-coverage.json # 分享图字体的码点覆盖区间
 │   │   ├── avatar.ts            # 头像地址整理
 │   │   └── site.ts              # 站点文案、导航项、分类元信息
 │   ├── content/posts/*.mdoc    # 文章内容（Markdoc）
@@ -220,7 +233,7 @@ npm run lint
 1. 读取文件后解析 frontmatter，正文交给 `Markdoc.parse()`；
 2. 用 `JSON.parse(JSON.stringify(...))` 做一次序列化往返，把 Markdoc 的 `Node` 类实例变成纯对象 —— **直接传类实例跨 RSC 边界会触发 “Only plain objects … can be passed to Client Components”**；
 3. 统计正文字数估算阅读时长；
-4. 客户端 `MarkdocContent` 递归渲染为 React 节点。
+4. 独立页由服务端直接渲染 `/post/[slug]`；首页弹窗按需拉取同一份 AST，在客户端交给 `MarkdocContent` 递归渲染。
 
 > Keystatic 的 `DocumentRenderer` 期望文本在 `text` 字段，而 Markdoc AST 把文本放在 `attributes.content`。两者并不兼容，所以项目内实现了轻量渲染器 [MarkdocContent.tsx](src/components/MarkdocContent.tsx)。
 
@@ -360,8 +373,8 @@ GitHub OAuth App 的 **Authorization callback URL** 填 `${SITE_URL}/api/auth/gi
 ## 十、已知说明
 
 1. **音频需要用户手势**：首次点击开关或电台按钮后才会创建 `AudioContext`。
-2. **字体的覆盖边界**：字体已同源自托管，不依赖 Google Fonts；CJK 子集覆盖站点用字 + GB2312 全部 6763 个汉字，GB2312 之外的更生僻字（如「龘」）仍会回退系统衬线字体，布局不受影响。
-3. **Markdoc 序列化**：文章 AST 是 Markdoc 的 `Node` 类实例，传给客户端前必须做 JSON 往返；`MarkdocContent` 按节点类型渲染，新增自定义节点时在它的 `switch` 中补分支即可。
+2. **字体的覆盖边界**：字体已同源自托管，不依赖 Google Fonts；CJK 子集覆盖站点用字 + GB2312 全部 6763 个汉字，GB2312 之外的更生僻字（如「龘」）仍会回退系统衬线字体，布局不受影响。文章分享图使用单独裁出的 WOFF（GB2312 一级 + 符号，`npm run fonts:og` 可重新生成），标题超出该范围时回退站点根分享图。
+3. **Markdoc 序列化**：文章 AST 是 Markdoc 的 `Node` 类实例，传给客户端前必须做 JSON 往返；独立页在服务端渲染，首页弹窗在客户端渲染，两者共用 `MarkdocContent`，新增自定义节点时在它的 `switch` 中补分支即可。
 4. **原始 HTML 媒体**：Markdoc 不解析 HTML，`<video>` / `<audio>` 会以文本节点保留，由 `MarkdocContent` 识别 `src` 后渲染为原生播放器。
 5. **写入需要令牌**：未配置 `BLOG_GITHUB_TOKEN` 时后台会退回写本地文件，Vercel 等只读环境将无法保存文章。
 6. **管理后台类型**：Keystatic 与 Next 16 的配置类型存在版本差异，[keystatic 页面](src/app/keystatic/[[...params]]/page.tsx) 中做了 `ComponentProps` 断言，升级依赖后可复查是否需要保留。
@@ -373,3 +386,7 @@ GitHub OAuth App 的 **Authorization callback URL** 填 `${SITE_URL}/api/auth/gi
 ## 十一、致谢
 
 设计灵感来自 Smartisan OS、锤子便签与那个仍然相信“工匠精神”的年代。代码与文案均为致敬性创作，与锤子科技无隶属关系。
+
+## 十二、许可证
+
+本仓库代码以 [MIT](LICENSE) 协议开源，可自由使用、修改与再分发，保留版权声明即可；文章与便签等原创内容适用 [CONTENT-LICENSE.md](CONTENT-LICENSE.md)，未经授权请勿转载。

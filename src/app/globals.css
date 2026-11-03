@@ -691,6 +691,8 @@ body {
   font-size: 0.95rem;
   line-height: 2;
   color: #d8d8dc;
+  /* 375px 窄屏兜底：长串裸 URL 与连续字符不横向撑破版心 */
+  overflow-wrap: anywhere;
 }
 @media (min-width: 640px) {
   .article-body {
@@ -756,6 +758,7 @@ body {
   border-radius: 4px;
   padding: 0.1rem 0.3rem;
   color: #dec285;
+  overflow-wrap: anywhere;
 }
 .article-body pre {
   background: #131416;
@@ -763,6 +766,7 @@ body {
   border-radius: 8px;
   padding: 1rem;
   overflow-x: auto;
+  overflow-wrap: anywhere;
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.7);
 }
 .article-body pre code {

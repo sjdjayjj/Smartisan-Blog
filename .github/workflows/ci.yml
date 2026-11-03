@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+      # CI 没有私有内容仓凭据：刻意留空，断言站点仍能走本地 src/content 回退构建
+      BLOG_REPO: ""
+      BLOG_GITHUB_TOKEN: ""
+      # 仅用于构建期读取会话配置，避免缺变量时告警
+      AUTH_SECRET: ci-only-placeholder-secret
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      # next build 会生成 next-env.d.ts（该文件未入库），因此必须先 build 再跑类型检查
+      - run: npm run build
+      - run: npx tsc --noEmit
+      - run: npm run lint
