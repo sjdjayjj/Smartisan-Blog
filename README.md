@@ -34,6 +34,10 @@
 - `--font-sans`：Roboto / PingFang SC —— 界面文案
 - `--font-mono`：Roboto Mono —— 日期、编号、状态、元信息
 
+Noto Serif SC 走自托管子集（见 [fonts.css](src/app/fonts.css)）：`core`（首屏用字，首页只命中这一片）、`mid`（站点其余用字，现有文章最多命中 core + mid）、`tail-l1` / `tail-l2`（GB2312 一级 3755 字 / 二级 3008 字中尚未覆盖的生僻字），每片独立 `unicode-range`，浏览器只拉取命中的文件。
+
+子集由 `npm run fonts:subset` 一次生成：字符来源 = 线上站点用字（首页 + sitemap 里的全部文章 + `src` 源码文案）+ GB2312 常用汉字表（`TextDecoder('gb18030')` 解码码位生成，可复现），脚本末尾会断言所有站点用字都被某个分片覆盖。产物随仓库提交，**日常开发与构建不需要重跑**；只有新增文章、想追最新用字时才重跑（需要能访问线上站点）。
+
 所有色值、字体、阴影都定义在 [globals.css](src/app/globals.css) 的 `@theme` 块中（Tailwind CSS v4 语法），改一处即可全站生效。
 
 ### 火漆正印
@@ -84,7 +88,7 @@
 - **认证**：GitHub OAuth + HMAC 签名 HttpOnly Cookie（无第三方鉴权依赖）
 - **媒体**：Cloudflare R2（S3 兼容 API + 手写 AWS SigV4 签名）
 - **图标**：lucide-react
-- **字体**：Google Fonts（Noto Serif SC / Playfair Display / Roboto / Roboto Mono）
+- **字体**：自托管 woff2（Noto Serif SC 站点用字 + GB2312 子集 / Playfair Display / Roboto / Roboto Mono）
 - **类型**：TypeScript 5
 
 ---
@@ -297,7 +301,7 @@ GitHub OAuth App 的 **Authorization callback URL** 填 `${SITE_URL}/api/auth/gi
 ## 八、自定义指南
 
 - **换主色**：修改 `--color-smartisan-red` / `--color-smartisan-gold`，红线、徽章、光晕与 `.st-seal` 朱印会一起变化；火漆正印的蜡体色写在 [WaxSeal.tsx](src/components/WaxSeal.tsx) 与 [waxSealCanvas.ts](src/lib/waxSealCanvas.ts) 的渐变里，**换色时两处都要改**。
-- **换标题字体**：修改 `--font-serif`，同步调整 [layout.tsx](src/app/layout.tsx) 里的 Google Fonts `<link>`。
+- **换标题字体**：修改 `--font-serif`，同步调整 [fonts.css](src/app/fonts.css) 里的 `@font-face`；换 CJK 字体后重跑 `npm run fonts:subset` 生成新子集。
 - **改印章文案**：`<WaxSeal lines={["工匠出品", "骄傲制造"]} size={84} />`，字数自动决定排版（4 字压两行、2 字放大做主体）；轮廓与字号规则在 [waxSeal.ts](src/lib/waxSeal.ts)，改点集会同时影响页面与导出长图。
 - **加分类**：在 `keystatic.config.ts` 的 `category` 选项、`site.ts` 的 `categoryMeta` 与 `categoryFilters` 三处同步增加同一个 key。
 - **调整声效**：`playMechanicalClick(frequency, duration)` 的频率与时长在 [audio.ts](src/lib/audio.ts)，电台底噪音量在 `createPinkNoise(volume)` 调用处。
@@ -356,7 +360,7 @@ GitHub OAuth App 的 **Authorization callback URL** 填 `${SITE_URL}/api/auth/gi
 ## 十、已知说明
 
 1. **音频需要用户手势**：首次点击开关或电台按钮后才会创建 `AudioContext`。
-2. **字体依赖网络**：Google Fonts 无法访问时会回退到系统衬线/无衬线字体，布局不受影响。
+2. **字体的覆盖边界**：字体已同源自托管，不依赖 Google Fonts；CJK 子集覆盖站点用字 + GB2312 全部 6763 个汉字，GB2312 之外的更生僻字（如「龘」）仍会回退系统衬线字体，布局不受影响。
 3. **Markdoc 序列化**：文章 AST 是 Markdoc 的 `Node` 类实例，传给客户端前必须做 JSON 往返；`MarkdocContent` 按节点类型渲染，新增自定义节点时在它的 `switch` 中补分支即可。
 4. **原始 HTML 媒体**：Markdoc 不解析 HTML，`<video>` / `<audio>` 会以文本节点保留，由 `MarkdocContent` 识别 `src` 后渲染为原生播放器。
 5. **写入需要令牌**：未配置 `BLOG_GITHUB_TOKEN` 时后台会退回写本地文件，Vercel 等只读环境将无法保存文章。
