@@ -8,13 +8,23 @@ import Toast from "@/components/Toast";
 import SoundEffects from "@/components/SoundEffects";
 import ReadingProgress from "@/components/ReadingProgress";
 import LevelBubble from "@/components/LevelBubble";
+import type { Metadata } from "next";
 import { site } from "@/lib/site";
+import { serializeJsonLd, websiteJsonLd } from "@/lib/seo";
 import { getSession, isAdmin } from "@/lib/auth";
 import { loadPostsWithStatus } from "@/lib/github";
 import { loadNotesWithStatus, type NoteShare } from "@/lib/notes";
 
 // 文章与便签来自 GitHub 仓库（或本地文件），后台保存后即时生效
 export const instant = false;
+
+/**
+ * 首页 canonical 指向根地址，`/?post=<slug>` 的弹窗深链仍可访问，
+ * 但不与 /post/<slug> 形成重复索引。
+ */
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 /** 按最早一篇内容的日期计算坚守天数；放在组件外，避免渲染期调用非纯函数。 */
 function daysSinceFirstContent(dates: string[]): number {
@@ -68,6 +78,10 @@ export default async function HomePage() {
 
   return (
     <main id="main-content" className="min-h-screen flex flex-col">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(websiteJsonLd()) }}
+      />
       <Navbar canEdit={canEdit} />
       <SoundEffects />
       <ReadingProgress />

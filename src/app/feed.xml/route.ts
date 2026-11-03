@@ -1,3 +1,6 @@
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server.edge";
+import MarkdocContent from "@/components/MarkdocContent";
 import { loadPosts } from "@/lib/github";
 import { categoryMeta, site } from "@/lib/site";
 import { absoluteUrl, siteUrl } from "@/lib/seo";
@@ -21,11 +24,34 @@ function toRfc822(value: string): string {
   return Number.isNaN(date.getTime()) ? new Date().toUTCString() : date.toUTCString();
 }
 
+/** 站内相对链接改绝对地址，订阅器里点击/加载资源不会落到聚合器域名。 */
+function absolutizeLinks(html: string): string {
+  return html.replace(
+    /(href|src|poster)="\/(?!\/)/g,
+    (_match, attribute: string) => `${attribute}="${siteUrl}/`
+  );
+}
+
+/** CDATA 包裹；正文若含 `]]>` 先拆段，避免提前闭合。 */
+function toCdata(html: string): string {
+  return `<![CDATA[${html.replaceAll("]]>", "]]]]><![CDATA[>")}]]>`;
+}
+
+/** 服务端把 Markdoc AST 渲染成完整正文 HTML，与独立页使用同一渲染链路。 */
+function renderPostHtml(document: unknown): string {
+  const html = renderToStaticMarkup(
+    createElement(MarkdocContent, { nodes: document, headingIds: true })
+  );
+  // renderToStaticMarkup 会在相邻文本节点间插入空注释，去掉后正文更干净
+  return absolutizeLinks(html.replace(/<!-- -->/g, ""));
+}
+
 export async function GET() {
   const posts = await loadPosts();
   const items = posts
     .map((post) => {
       const meta = categoryMeta[post.category] ?? categoryMeta.thinking;
+      const content = renderPostHtml(post.document);
       return [
         "    <item>",
         `      <title>${escapeXml(post.title)}</title>`,
@@ -34,6 +60,7 @@ export async function GET() {
         `      <pubDate>${toRfc822(post.date)}</pubDate>`,
         `      <category>${escapeXml(meta.label)}</category>`,
         `      <description>${escapeXml(post.summary)}</description>`,
+        `      <content:encoded>${toCdata(content)}</content:encoded>`,
         "    </item>",
       ].join("\n");
     })
@@ -41,7 +68,7 @@ export async function GET() {
 
   const xml = [
     '<?xml version="1.0" encoding="UTF-8"?>',
-    '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">',
+    '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">',
     "  <channel>",
     `    <title>${escapeXml(site.name)}</title>`,
     `    <link>${siteUrl}</link>`,

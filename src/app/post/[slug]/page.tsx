@@ -6,7 +6,12 @@ import Navbar from "@/components/Navbar";
 import PostReader from "@/components/PostReader";
 import ReadingProgress from "@/components/ReadingProgress";
 import { isValidSlug, loadPostWithStatus } from "@/lib/github";
-import { absoluteUrl } from "@/lib/seo";
+import {
+  absoluteUrl,
+  isoDate,
+  postJsonLd,
+  serializeJsonLd,
+} from "@/lib/seo";
 import { categoryMeta, site } from "@/lib/site";
 
 /**
@@ -18,12 +23,6 @@ export const instant = false;
 
 interface PostPageProps {
   params: Promise<{ slug: string }>;
-}
-
-/** 仅返回合法 ISO 字符串，避免脏数据让 metadata 抛错。 */
-function isoDate(value: string): string | undefined {
-  const time = new Date(value).getTime();
-  return Number.isNaN(time) ? undefined : new Date(time).toISOString();
 }
 
 function formatDate(date: string): string {
@@ -53,8 +52,9 @@ export async function generateMetadata({
   const title = `${post.title} · ${site.name}`;
   const description = post.summary || site.bio;
   const url = absoluteUrl(`/post/${slug}`);
-  // 沿用站点根目录的 1200×630 分享图；标题为中文，动态生成会缺字
-  const image = absoluteUrl("/opengraph-image");
+  // 逐篇分享图由 /post/[slug]/opengraph-image 生成；失败时该路由自己回退根图
+  const image = absoluteUrl(`/post/${slug}/opengraph-image`);
+  const published = isoDate(post.date) ?? undefined;
 
   return {
     title,
@@ -67,7 +67,8 @@ export async function generateMetadata({
       title,
       description,
       url,
-      publishedTime: isoDate(post.date),
+      publishedTime: published,
+      modifiedTime: published,
       images: [{ url: image, width: 1200, height: 630, alt: title }],
     },
     twitter: {
@@ -123,9 +124,22 @@ export default async function PostPage({ params }: PostPageProps) {
   const post = result.post;
 
   const meta = categoryMeta[post.category] ?? categoryMeta.thinking;
+  const structuredData = postJsonLd({
+    slug,
+    title: post.title,
+    summary: post.summary,
+    date: post.date,
+  });
 
   return (
     <main id="main-content" className="min-h-screen flex flex-col">
+      {structuredData.map((item, index) => (
+        <script
+          key={index}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: serializeJsonLd(item) }}
+        />
+      ))}
       <Navbar />
       <ReadingProgress />
 

@@ -74,6 +74,12 @@ function unavailableResponse(): NextResponse {
 }
 
 export async function proxy(request: NextRequest) {
+  // 分享图路由由 /post/[slug]/opengraph-image 自行处理（含不存在 slug 的回退根图），
+  // 不能把它当成 slug 的一部分去做存在性校验。
+  if (request.nextUrl.pathname.endsWith("/opengraph-image")) {
+    return NextResponse.next();
+  }
+
   const slug = request.nextUrl.pathname.replace(/^\/post\/?/, "");
   if (!isValidSlug(slug)) {
     return NextResponse.rewrite(new URL(MISSING_PATH, request.url));
