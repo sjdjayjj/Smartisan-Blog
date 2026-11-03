@@ -19,6 +19,7 @@ import { showToast } from "@/lib/bus";
 import { copyText } from "@/lib/clipboard";
 import { categoryFilters, categoryMeta, type CategoryKey } from "@/lib/site";
 import { useModalA11y } from "@/lib/useModalA11y";
+import { collectHeadings } from "@/lib/headings";
 
 export interface ArticleItem {
   slug: string;
@@ -40,19 +41,7 @@ interface ReadingPrefs {
   leading: number;
 }
 
-interface HeadingItem {
-  id: string;
-  text: string;
-  level: number;
-}
-
 type DocStatus = "idle" | "loading" | "ready" | "error";
-
-type DocNode = {
-  type?: string;
-  attributes?: Record<string, unknown>;
-  children?: DocNode[];
-};
 
 const DEFAULT_READING: ReadingPrefs = { size: 16, leading: 2 };
 
@@ -62,40 +51,6 @@ function clamp(value: number, min: number, max: number) {
 
 function formatDate(date: string) {
   return date.replaceAll("-", ".");
-}
-
-/** 与 MarkdocContent 的标题编号规则保持一致，才能让目录锚点命中正文。 */
-function collectHeadings(nodes: unknown): HeadingItem[] {
-  const list = Array.isArray(nodes) ? (nodes as DocNode[]) : [];
-  const headings: HeadingItem[] = [];
-
-  const textOf = (node: DocNode): string => {
-    const type = node.type ?? "";
-    if (type === "text" || type === "code") {
-      const content = node.attributes?.content;
-      return typeof content === "string" ? content : "";
-    }
-    if (type === "softbreak" || type === "hardbreak") return " ";
-    return (node.children ?? []).map(textOf).join("");
-  };
-
-  const walk = (items: DocNode[]) => {
-    for (const node of items) {
-      if (node.type === "heading") {
-        const level = Number(node.attributes?.level ?? 2);
-        headings.push({
-          id: `article-heading-${headings.length}`,
-          level: level >= 4 ? 4 : level === 3 ? 3 : 2,
-          text: (node.children ?? []).map(textOf).join("").trim(),
-        });
-        continue;
-      }
-      if (node.children?.length) walk(node.children);
-    }
-  };
-
-  walk(list);
-  return headings.filter((heading) => heading.text.length > 0);
 }
 
 function readPositions(): Record<string, number> {

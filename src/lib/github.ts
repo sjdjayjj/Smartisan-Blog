@@ -2,16 +2,18 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import Markdoc from "@markdoc/markdoc";
 import { categoryMeta, type CategoryKey } from "@/lib/site";
+import { POSTS_DIR, isValidSlug, repoConfig, readPostSource } from "@/lib/post-source";
 
 /**
  * 文章数据源：
  * - 配置了 BLOG_REPO + BLOG_GITHUB_TOKEN 时，从 GitHub 仓库读取并以 commit 方式回写；
  * - 否则退回本地文件系统（仅开发环境可写）。
+ *
+ * 仓库坐标、目录拼装与 `.mdoc` / `.md` 后缀规则统一由 @/lib/post-source 提供，
+ * 与 src/proxy.ts 共用，避免两套解析逻辑漂移。
  */
 
-/* 文章目录支持通过 BLOG_POSTS_DIR 覆盖，便于代码仓与私有内容仓分离。
-   注意：该路径会直接拼进 GitHub API URL（未做编码），请勿包含空格或特殊字符。 */
-export const POSTS_DIR = process.env.BLOG_POSTS_DIR?.trim() || "src/content/posts";
+export { POSTS_DIR, isValidSlug };
 
 export interface PostEntry {
   slug: string;
@@ -30,19 +32,6 @@ export interface PostDraft {
   category: CategoryKey;
   summary: string;
   body: string;
-}
-
-interface RepoConfig {
-  repo: string;
-  token: string;
-  branch: string;
-}
-
-function repoConfig(): RepoConfig | null {
-  const repo = process.env.BLOG_REPO?.trim();
-  const token = process.env.BLOG_GITHUB_TOKEN?.trim();
-  if (!repo || !token) return null;
-  return { repo, token, branch: process.env.BLOG_BRANCH?.trim() || "main" };
 }
 
 export function githubReady(): boolean {
@@ -122,12 +111,6 @@ export function serializePost(draft: PostDraft): string {
 }
 
 /* --------------------------------- helpers -------------------------------- */
-
-export function isValidSlug(slug: string): boolean {
-  // 允许前导下划线，以便仓库自带的 _example.mdoc 能正常按需加载；
-  // 其余规则不变：字母、数字、短横线，长度不超过 81。
-  return /^[a-z0-9_][a-z0-9_-]{0,80}$/i.test(slug);
-}
 
 export function slugFromTitle(title: string): string {
   const ascii = title
@@ -491,16 +474,33 @@ export async function loadPosts(): Promise<PostEntry[]> {
   return (await loadPostsWithStatus()).posts;
 }
 
+/** 单篇加载结果：区分「不存在」与「内容源不可用」，供页面/接口给出正确状态码。 */
+export type PostLoadResult =
+  | { status: "ok"; post: PostEntry }
+  | { status: "not_found" }
+  | { status: "unavailable" };
+
+export async function loadPostWithStatus(slug: string): Promise<PostLoadResult> {
+  const result = await readPostSource(slug);
+  if (result.status === "missing") return { status: "not_found" };
+  if (result.status === "unavailable") return { status: "unavailable" };
+  return { status: "ok", post: toEntry(slug, result.raw) };
+}
+
+/** 兼容旧调用（sitemap / feed / 后台列表）：内容源异常时按无数据处理。 */
 export async function loadPost(slug: string): Promise<PostEntry | null> {
-  const raw = await readContentFile(POSTS_DIR, `${slug}.mdoc`);
-  if (!raw) return null;
-  return toEntry(slug, raw);
+  const result = await loadPostWithStatus(slug);
+  return result.status === "ok" ? result.post : null;
 }
 
 export async function loadDraft(slug: string): Promise<PostDraft | null> {
-  const raw = await readContentFile(POSTS_DIR, `${slug}.mdoc`);
-  if (!raw) return null;
-  const { data, body } = parseFrontmatter(raw);
+  const result = await readPostSource(slug);
+  // 编辑态下内容源异常必须显式失败，否则会把已有文章当成新草稿覆盖
+  if (result.status === "unavailable") {
+    throw new Error("内容源暂时不可用，无法读取草稿");
+  }
+  if (result.status === "missing") return null;
+  const { data, body } = parseFrontmatter(result.raw);
   return {
     slug,
     title: data.title ?? slug,
