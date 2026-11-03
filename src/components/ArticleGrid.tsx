@@ -13,7 +13,7 @@ import {
   Share2,
   X,
 } from "lucide-react";
-import MarkdocContent from "@/components/MarkdocContent";
+import ArticleBody from "@/components/ArticleBody";
 import { playMechanicalClick } from "@/lib/audio";
 import { showToast } from "@/lib/bus";
 import { copyText } from "@/lib/clipboard";
@@ -745,14 +745,12 @@ export default function ArticleGrid({
                     </button>
                   </div>
                 ) : doc ? (
-                  <div
-                    className={`article-body rounded-xl ${
-                      lamp ? "reading-lamp p-5 sm:p-6" : ""
-                    }`}
-                    style={{ fontSize: `${reading.size}px`, lineHeight: reading.leading }}
-                  >
-                    <MarkdocContent nodes={doc} headingIds />
-                  </div>
+                  <ArticleBody
+                    nodes={doc}
+                    lamp={lamp}
+                    size={reading.size}
+                    leading={reading.leading}
+                  />
                 ) : (
                   // 正文按需加载：用现有凹槽质感占位，避免弹窗出现空白
                   <div className="st-well rounded-xl p-6 space-y-3" aria-busy="true" aria-live="polite">

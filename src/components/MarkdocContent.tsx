@@ -1,5 +1,3 @@
-"use client";
-
 import type { ReactNode } from "react";
 
 /**
@@ -7,6 +5,10 @@ import type { ReactNode } from "react";
  * 与 `DocumentRenderer` 期望的 Keystatic 文档结构不同：
  * 文本内容存放在 `attributes.content`，而非 `text` 字段。
  * 这里针对 Markdoc 节点类型做一层轻量渲染，避免依赖内部转换。
+ *
+ * 组件不含任何客户端状态，因此不标 "use client"：
+ * 由客户端组件引用时会正常进入客户端包，由服务端组件（/post/[slug]）引用时
+ * 则直接输出 HTML，保证禁用 JS 也能读到全文。
  */
 
 type MarkdocNode = {

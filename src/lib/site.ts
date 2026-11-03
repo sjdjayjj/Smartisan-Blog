@@ -16,11 +16,12 @@ export const site = {
   footerNote: "Inspired by Smartisan OS © 2026. Built with Pride & Craftsmanship.",
 } as const;
 
+/* 导航全部指向首页锚点（写成 /#xxx）：在 /post/[slug] 独立页点击也能回到首页对应区块 */
 export const navItems: ReadonlyArray<{ href: string; label: string; dot?: boolean }> = [
-  { href: "#articles", label: "文集 Articles", dot: true },
-  { href: "#note", label: "便签 Notes" },
-  { href: "#about", label: "关于 About" },
-  { href: "#gadget", label: "工匠电台" },
+  { href: "/#articles", label: "文集 Articles", dot: true },
+  { href: "/#note", label: "便签 Notes" },
+  { href: "/#about", label: "关于 About" },
+  { href: "/#gadget", label: "工匠电台" },
 ];
 
 export const categoryMeta: Record<
