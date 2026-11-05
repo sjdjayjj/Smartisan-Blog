@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from "react";
 import { Calendar, Check, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { playMechanicalClick } from "@/lib/audio";
 import { categoryFilters, type CategoryKey } from "@/lib/site";
@@ -25,6 +25,28 @@ const MONTH_LABELS = [
 /** 弹层统一的金属面板材质 */
 const POPOVER =
   "st-popover absolute top-[calc(100%_+_8px)] z-40 rounded-xl animate-scaleUp";
+
+/**
+ * 字段标题行：固定高度 + 右侧操作槽位绝对定位。
+ *
+ * 三列表单里只要有字段多出按钮，行高就会被按钮撑高，导致输入框顶边错位。
+ * 这里把行高锁死在 h-6，操作区脱离文档流贴右居中，所有字段结构上就对齐，
+ * 后续再加按钮也不会破坏排列。
+ */
+export function FieldLabel({ text, action }: { text: string; action?: ReactNode }) {
+  return (
+    <div className="relative flex h-6 items-center min-w-0">
+      <span className="font-mono text-[10px] tracking-widest text-smartisan-muted uppercase truncate">
+        {text}
+      </span>
+      {action ? (
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-1">
+          {action}
+        </div>
+      ) : null}
+    </div>
+  );
+}
 
 const CATEGORY_DOT: Record<CategoryKey, string> = {
   aesthetic: "bg-smartisan-red shadow-red-glow",
