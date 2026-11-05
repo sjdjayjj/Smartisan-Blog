@@ -8,7 +8,7 @@
 
 一键部署会自动 Fork 仓库并逐项询问环境变量。**站点凭据（GitHub OAuth、内容仓、R2）只从环境变量读取；第三方 AI Key 例外——加密存储在 Cloudflare KV，由工坊设置页维护，绝不以明文落盘或进入代码。**
 
-> **内容不在本仓库**：文章与便签存放在独立的私有内容仓，通过 `BLOG_REPO`、`BLOG_GITHUB_TOKEN`、`BLOG_BRANCH` 以及 `BLOG_POSTS_DIR`、`BLOG_NOTES_DIR` 读取；本仓库只保留 `_example.mdoc` 示例文件。Fork 后请自建内容仓并配置上述变量；未配置时站点回退读取 `src/content` 下的示例内容。内容授权见 [CONTENT-LICENSE.md](CONTENT-LICENSE.md)。
+> **内容不在本仓库**：文章与便签存放在独立的私有内容仓，通过 `BLOG_REPO`、`BLOG_GITHUB_TOKEN`、`BLOG_BRANCH` 以及 `BLOG_POSTS_DIR`、`BLOG_NOTES_DIR` 读取；本仓库只保留 `_example.mdoc` 示例文件。Fork 后请自建内容仓并配置上述变量；未配置时站点回退读取 `src/content` 下的示例内容。`src/content/` 下的全部内容仅作为示例文件存在，不受任何使用限制，可自由取用、修改或删除，详见 [CONTENT-LICENSE.md](CONTENT-LICENSE.md)。
 
 ---
 
@@ -23,7 +23,7 @@
 | 按钮 `.st-btn` | 双层描边 + 按压位移，模拟机械按键的行程 |
 | 细红线 | 头部与弹窗分割线使用红色渐变 + 发光，取自 Smartisan OS 的标志性红线 |
 | 便签纸 `.st-note-paper` | 深色纸面 + 横向格线 + 顶部金属夹扣，落款处压一枚火漆正印 |
-| 开关 `.switch-track` / `.switch-thumb` | 带轨道内阴影与滑块高光的物理拨动开关 |
+| 主题拨杆 `.theme-rocker` | 两档物理拨杆，选中档位带渐变与内阴影 |
 | 旋钮 `.dial-knurl` | `repeating-conic-gradient` 生成的金属滚花纹理，可随播放状态旋转 |
 | 小号朱印 `.st-seal` | 红描边 + 微旋转，用于 11px 级角标与“查无此页”这类状态戳记 |
 | 火漆正印 `.wax-seal` | 不规则蜡体、隆起蜡沿、底部蜡泪、凹刻文字，用于正式落款（见下节） |
@@ -64,7 +64,7 @@ Noto Serif SC 走自托管子集（见 [fonts.css](src/app/fonts.css)）：`core
 
 ## 二、交互功能
 
-- **触感声效开关**：导航栏右侧的物理开关，用 Web Audio API 实时合成机械“咔哒”声；状态切换会写入 `localStorage`。
+- **点击音效**：全局常开，没有静音入口；用 Web Audio API 实时合成机械“咔哒”声。
 - **全局点击音**：`SoundEffects` 通过事件委托监听 `.st-btn` 与 `.category-btn`，每次点击播放不同频率的短促机械声。
 - **分类筛选**：全部 / 产品美学 / 系统折腾 / 思考与架构，即时过滤九宫格，按钮带按压反馈。
 - **文章阅读**：服务端 Markdoc 渲染独立页（`/post/[slug]`），首页弹窗按需加载同一份 AST 并在客户端渲染（支持图片与 `<video>` / `<audio>` 原生媒体标签）；支持 `Esc`、点击遮罩、右上角按钮三种关闭方式，打开时锁定页面滚动。
@@ -197,15 +197,15 @@ CI（GitHub Actions）在每次 push / PR 时依次执行 `npm run build` → `n
 │   │   ├── waxSeal.ts           # 火漆印几何与压印文字排版（SVG / Canvas 共用）
 │   │   ├── waxSealCanvas.ts     # 火漆印在长图里的绘制
 │   │   ├── r2.ts                # R2 SigV4 上传
-│   │   ├── audio.ts             # AudioContext、点击音、粉红噪声、静音偏好
+│   │   ├── audio.ts             # AudioContext、点击音合成、粉红噪声与电台环境音
 │   │   ├── clipboard.ts         # 复制兜底（Clipboard API → execCommand）
 │   │   ├── bus.ts               # 轻量事件总线（打开便签 / 弹出 Toast）
 │   │   ├── seo.ts               # 站点绝对地址、日期、JSON-LD 拼装
 │   │   ├── og-font-coverage.json # 分享图字体的码点覆盖区间
 │   │   ├── avatar.ts            # 头像地址整理
 │   │   └── site.ts              # 站点文案、导航项、分类元信息
-│   ├── content/posts/*.mdoc    # 文章内容（Markdoc）
-│   └── content/notes/*.mdoc    # 便签内容（与文章同构）
+│   ├── content/posts/*.mdoc    # 示例文章（Markdoc，可自由修改或删除）
+│   └── content/notes/*.mdoc    # 示例便签（与文章同构，可自由修改或删除）
 ```
 
 ---
@@ -413,4 +413,4 @@ GitHub OAuth App 的 **Authorization callback URL** 填 `${SITE_URL}/api/auth/gi
 
 ## 十二、许可证
 
-本仓库代码以 [MIT](LICENSE) 协议开源，可自由使用、修改与再分发，保留版权声明即可；文章与便签等原创内容适用 [CONTENT-LICENSE.md](CONTENT-LICENSE.md)，未经授权请勿转载。
+本仓库代码以 [MIT](LICENSE) 协议开源，可自由使用、修改与再分发，保留版权声明即可。`src/content/` 下的全部内容（文章、便签等）仅作为示例文件存在，不受任何使用限制，可自由取用、修改或删除，详见 [CONTENT-LICENSE.md](CONTENT-LICENSE.md)。
