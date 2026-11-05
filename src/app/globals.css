@@ -281,30 +281,6 @@ body {
   }
 }
 
-/* 物理拨杆开关 */
-.switch-track {
-  background: #121315;
-  box-shadow:
-    inset 0 2px 4px rgba(0, 0, 0, 0.8),
-    inset 0 0 1px rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-}
-.switch-thumb {
-  background: linear-gradient(180deg, #444852 0%, #272a30 100%);
-  box-shadow:
-    0 2px 5px rgba(0, 0, 0, 0.6),
-    inset 0 1px 0 rgba(255, 255, 255, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-.switch-active .switch-thumb {
-  transform: translateX(20px);
-  background: linear-gradient(180deg, #e33b41 0%, #aa1a20 100%);
-  box-shadow:
-    0 0 8px rgba(212, 35, 42, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.4);
-}
-
 /* 滚花旋钮 */
 .dial-knurl {
   background: repeating-conic-gradient(#202125 0% 1%, #2b2e35 1% 2%);
@@ -1311,7 +1287,6 @@ body {
   }
   .st-card,
   .st-btn,
-  .switch-thumb,
   .rotating,
   .animate-scaleUp,
   .animate-fadeIn,
@@ -1566,22 +1541,6 @@ html[data-theme="light"] .st-seal {
   box-shadow:
     0 0 6px rgba(212, 35, 42, 0.18),
     inset 0 0 4px rgba(212, 35, 42, 0.1);
-}
-
-/* —— 拨杆开关 —— */
-html[data-theme="light"] .switch-track {
-  background: #ded9cd;
-  border-color: rgba(0, 0, 0, 0.14);
-  box-shadow:
-    inset 0 2px 4px rgba(94, 84, 66, 0.35),
-    inset 0 0 1px rgba(255, 255, 255, 0.8);
-}
-html[data-theme="light"] .switch-thumb {
-  background: linear-gradient(180deg, #ffffff 0%, #e2ddd1 100%);
-  border-color: rgba(0, 0, 0, 0.12);
-  box-shadow:
-    0 2px 4px rgba(94, 84, 66, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
 /* —— 滚花旋钮 —— */

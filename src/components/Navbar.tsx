@@ -1,23 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState, useSyncExternalStore } from "react";
+import { useRef, useState } from "react";
 import { Hammer, Menu, X } from "lucide-react";
 import IdeaPills from "@/components/IdeaPills";
 import ThemeToggle from "@/components/ThemeToggle";
 import { navItems, site } from "@/lib/site";
-import {
-  isSoundEnabled,
-  playMechanicalClick,
-  setSoundEnabled,
-  subscribeSound,
-} from "@/lib/audio";
-import { showToast } from "@/lib/bus";
 import { useModalA11y } from "@/lib/useModalA11y";
 
 export default function Navbar({ canEdit = false }: { canEdit?: boolean }) {
-  // 订阅 localStorage 中的声效偏好：服务端渲染默认开启，客户端水合后取真实值
-  const soundOn = useSyncExternalStore(subscribeSound, isSoundEnabled, () => true);
   const [menuOpen, setMenuOpen] = useState(false);
   const drawerRef = useRef<HTMLElement | null>(null);
 
@@ -27,17 +18,6 @@ export default function Navbar({ canEdit = false }: { canEdit?: boolean }) {
     onClose: () => setMenuOpen(false),
     autofocusSelector: "a[href]",
   });
-
-  const toggleSound = () => {
-    const next = !soundOn;
-    setSoundEnabled(next);
-    if (next) {
-      playMechanicalClick(1200, 0.04);
-      showToast("已开启机械触感声效");
-    } else {
-      showToast("已静音");
-    }
-  };
 
   return (
     <>
@@ -90,8 +70,8 @@ export default function Navbar({ canEdit = false }: { canEdit?: boolean }) {
           )}
         </nav>
 
-        {/* 物理拨杆：主题与触感声效 */}
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+        {/* 右侧控件：作者入口、灵感胶囊与主题拨杆，整体贴右 */}
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0 ml-auto">
           {canEdit ? <IdeaPills /> : null}
           <Link
             href="/account"
@@ -107,24 +87,6 @@ export default function Navbar({ canEdit = false }: { canEdit?: boolean }) {
           <span className="hidden sm:inline-flex">
             <ThemeToggle />
           </span>
-          <div className="flex items-center gap-2 bg-smartisan-sunken px-2.5 sm:px-3 py-1.5 rounded-full border border-smartisan-hairline shadow-inner">
-            <span className="hidden sm:inline font-mono text-[11px] text-smartisan-muted tracking-tight whitespace-nowrap">
-              {soundOn ? "触感声效" : "已静音"}
-            </span>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={soundOn}
-              aria-label="开启或关闭拟物点击音效"
-              onClick={toggleSound}
-              title="开启/关闭拟物点击音效"
-              className={`tap-44 relative switch-track w-11 h-6 rounded-full p-0.5 cursor-pointer flex items-center ${
-                soundOn ? "switch-active" : ""
-              }`}
-            >
-              <span className="switch-thumb w-5 h-5 rounded-full block" />
-            </button>
-          </div>
 
           {/* 移动端抽屉开关 */}
           <button

@@ -5,22 +5,7 @@
  * 不依赖任何音频文件，首次交互时才创建 AudioContext（满足浏览器自动播放策略）。
  */
 
-const SOUND_STORAGE_KEY = "smartisan:sound";
-
 let audioCtx: AudioContext | null = null;
-let soundEnabled = true;
-let preferenceLoaded = false;
-
-/** 首次调用时从 localStorage 恢复用户偏好，SSR 阶段直接跳过。 */
-function loadPreference() {
-  if (preferenceLoaded || typeof window === "undefined") return;
-  preferenceLoaded = true;
-  try {
-    soundEnabled = window.localStorage.getItem(SOUND_STORAGE_KEY) !== "off";
-  } catch {
-    // 隐私模式等场景禁用 storage 时保持默认开启
-  }
-}
 
 export function getAudioContext(): AudioContext | null {
   if (typeof window === "undefined") return null;
@@ -35,38 +20,8 @@ export function getAudioContext(): AudioContext | null {
   return audioCtx;
 }
 
-// 客户端首次加载即恢复偏好，避免 getSnapshot 在渲染期产生副作用
-if (typeof window !== "undefined") loadPreference();
-
-const soundListeners = new Set<() => void>();
-
-/** 供 useSyncExternalStore 订阅声效开关变化 */
-export function subscribeSound(listener: () => void) {
-  soundListeners.add(listener);
-  return () => {
-    soundListeners.delete(listener);
-  };
-}
-
-export function isSoundEnabled() {
-  return soundEnabled;
-}
-
-export function setSoundEnabled(enabled: boolean) {
-  soundEnabled = enabled;
-  preferenceLoaded = true;
-  try {
-    window.localStorage.setItem(SOUND_STORAGE_KEY, enabled ? "on" : "off");
-  } catch {
-    // 写入失败时仅保留本次会话内的开关状态
-  }
-  soundListeners.forEach((listener) => listener());
-}
-
 /** 合成物理微动开关声：三角波快速下滑 + 指数衰减。 */
 export function playMechanicalClick(frequency = 800, duration = 0.03) {
-  loadPreference();
-  if (!soundEnabled) return;
   const ctx = getAudioContext();
   if (!ctx) return;
 

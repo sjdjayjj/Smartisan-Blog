@@ -209,11 +209,11 @@ export default function Gadget() {
         </span>
       </div>
 
-      <div className="flex flex-col items-center gap-8 lg:flex-row lg:items-start lg:justify-between">
-        {/* 磁带本体与卷轴 */}
+      <div className="flex flex-col items-center gap-8 md:grid md:grid-cols-[300px_minmax(0,1fr)] md:grid-rows-[auto_1fr] md:items-start md:gap-x-8 md:gap-y-4">
+        {/* 左栏第一行：磁带本体与卷轴 */}
         <div
           key={side}
-          className="cassette is-flipping shrink-0"
+          className="cassette is-flipping shrink-0 md:col-start-1 md:row-start-1 md:w-full"
           aria-label={`磁带 SIDE ${side}`}
         >
           <div className="cassette-label">
@@ -238,8 +238,8 @@ export default function Gadget() {
           </div>
         </div>
 
-        {/* 调频与电平显示 */}
-        <div className="w-full space-y-4 lg:max-w-[400px] lg:flex-1">
+        {/* 右栏：调频与电平显示 */}
+        <div className="w-full min-w-0 space-y-4 md:col-start-2 md:row-span-2 md:row-start-1">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <span
@@ -339,13 +339,13 @@ export default function Gadget() {
           </div>
         </div>
 
-        {/* 物理操作区 */}
-        <div className="flex items-center gap-3 shrink-0 lg:w-36 lg:flex-col lg:items-stretch">
+        {/* 左栏第二行：物理操作区，紧贴磁带下方 */}
+        <div className="flex items-center gap-3 md:col-start-1 md:row-start-2 md:w-full md:flex-col md:items-stretch">
           <button
             type="button"
             onClick={toggleRadio}
             aria-pressed={playing}
-            className="tap-44-y relative st-btn px-6 py-3 rounded-xl font-mono text-xs text-smartisan-ink flex items-center justify-center gap-2.5 shadow-lg border border-smartisan-line active:scale-95 transition lg:w-full"
+            className="tap-44-y relative st-btn px-6 py-3 rounded-xl font-mono text-xs text-smartisan-ink flex items-center justify-center gap-2.5 shadow-lg border border-smartisan-line active:scale-95 transition md:w-full"
           >
             {playing ? (
               <Pause size={13} className="text-smartisan-red" />
@@ -355,12 +355,12 @@ export default function Gadget() {
             <span>{playing ? "暂停电台" : "启动电台"}</span>
           </button>
 
-          <div className="flex items-center gap-2 lg:w-full">
+          <div className="flex items-center gap-2 md:w-full">
             <button
               type="button"
               onClick={flipSide}
               title="切换磁带 A/B 面"
-              className="tap-44-y relative st-btn px-3 h-10 rounded-lg font-mono text-[10px] text-smartisan-muted hover:text-smartisan-ink tracking-widest lg:flex-1"
+              className="tap-44-y relative st-btn px-3 h-10 rounded-lg font-mono text-[10px] text-smartisan-muted hover:text-smartisan-ink tracking-widest md:flex-1"
             >
               翻面 {side === "A" ? "B" : "A"}
             </button>
