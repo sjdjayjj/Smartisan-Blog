@@ -1,4 +1,5 @@
 import { notFound, redirect } from "next/navigation";
+import { connection } from "next/server";
 import AccountHeader from "@/components/account/AccountHeader";
 import NoteEditor from "@/components/account/NoteEditor";
 import Toast from "@/components/Toast";
@@ -13,6 +14,9 @@ export default async function NoteEditorPage({
 }: {
   searchParams: Promise<{ slug?: string; draft?: string }>;
 }) {
+  // 会话过期判断依赖当前时间，声明为请求时渲染，避免预渲染阶段的 Date.now() 告警
+  await connection();
+
   const user = await getSession();
   if (!user) redirect("/login");
   if (!isAdmin(user)) redirect("/login?error=not_allowed");

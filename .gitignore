@@ -34,6 +34,9 @@ yarn-error.log*
 .env*
 !.env.example
 
+# AI 配置本地兜底（仅本地开发使用，禁止提交）
+.ai-config.local.json
+
 # content: real articles stay private, examples are tracked
 src/content/posts/*.mdoc
 src/content/notes/*.mdoc

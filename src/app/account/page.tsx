@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { CalendarDays, FilePlus2, FolderGit2, HardDrive, PencilLine, StickyNote } from "lucide-react";
+import { CalendarDays, FilePlus2, FolderGit2, HardDrive, PencilLine, Settings, StickyNote } from "lucide-react";
 import AccountHeader from "@/components/account/AccountHeader";
 import UserAvatar from "@/components/UserAvatar";
 import Toast from "@/components/Toast";
 import SoundEffects from "@/components/SoundEffects";
+import { isAiConfigAvailable } from "@/lib/ai-config-store";
 import { getSession, isAdmin } from "@/lib/auth";
+import { connection } from "next/server";
 import { githubReady, loadPosts } from "@/lib/github";
 import { loadNotes } from "@/lib/notes";
 import { isR2Configured } from "@/lib/r2";
@@ -14,6 +16,9 @@ import { categoryMeta } from "@/lib/site";
 export const instant = false;
 
 export default async function AccountPage() {
+  // 会话过期判断依赖当前时间，声明为请求时渲染，避免预渲染阶段的 Date.now() 告警
+  await connection();
+
   const user = await getSession();
   if (!user) redirect("/login");
   if (!isAdmin(user)) redirect("/login?error=not_allowed");
@@ -56,7 +61,16 @@ export default async function AccountPage() {
                 站长账号 · 拥有文章与便签的新增、编辑与删除权限
               </p>
             </div>
-            <div className="sm:ml-auto">
+            <div className="sm:ml-auto flex items-center gap-2">
+              {isAiConfigAvailable() ? (
+                <Link
+                  href="/account/settings"
+                  className="st-btn px-4 py-3 rounded-xl flex items-center justify-center gap-2 text-xs font-sans text-smartisan-muted hover:text-smartisan-ink"
+                >
+                  <Settings size={14} className="text-smartisan-gold" />
+                  AI 设置
+                </Link>
+              ) : null}
               <Link
                 href="/account/editor"
                 className="st-btn px-5 py-3 rounded-xl flex items-center justify-center gap-2 text-sm font-sans text-smartisan-ink"

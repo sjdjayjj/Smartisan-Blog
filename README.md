@@ -4,9 +4,9 @@
 
 > “圆滑当道时代的锐利异类。”
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fsjdjayjj%2Fsmartisan-blog&project-name=smartisan-blog&repository-name=smartisan-blog&env=GITHUB_OAUTH_CLIENT_ID,GITHUB_OAUTH_CLIENT_SECRET,AUTH_SECRET,ADMIN_GITHUB_LOGINS,SITE_URL,BLOG_REPO,BLOG_GITHUB_TOKEN,BLOG_BRANCH,BLOG_POSTS_DIR,BLOG_NOTES_DIR,R2_ACCOUNT_ID,R2_ACCESS_KEY_ID,R2_SECRET_ACCESS_KEY,R2_BUCKET,R2_PUBLIC_BASE_URL)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fsjdjayjj%2Fsmartisan-blog&project-name=smartisan-blog&repository-name=smartisan-blog&env=GITHUB_OAUTH_CLIENT_ID,GITHUB_OAUTH_CLIENT_SECRET,AUTH_SECRET,ADMIN_GITHUB_LOGINS,SITE_URL,BLOG_REPO,BLOG_GITHUB_TOKEN,BLOG_BRANCH,BLOG_POSTS_DIR,BLOG_NOTES_DIR,R2_ACCOUNT_ID,R2_ACCESS_KEY_ID,R2_SECRET_ACCESS_KEY,R2_BUCKET,R2_PUBLIC_BASE_URL,CF_KV_NAMESPACE_ID,CF_API_TOKEN)
 
-一键部署会自动 Fork 仓库并逐项询问环境变量，**所有凭据只从环境变量读取，代码中没有任何硬编码**。
+一键部署会自动 Fork 仓库并逐项询问环境变量。**站点凭据（GitHub OAuth、内容仓、R2）只从环境变量读取；第三方 AI Key 例外——加密存储在 Cloudflare KV，由工坊设置页维护，绝不以明文落盘或进入代码。**
 
 > **内容不在本仓库**：文章与便签存放在独立的私有内容仓，通过 `BLOG_REPO`、`BLOG_GITHUB_TOKEN`、`BLOG_BRANCH` 以及 `BLOG_POSTS_DIR`、`BLOG_NOTES_DIR` 读取；本仓库只保留 `_example.mdoc` 示例文件。Fork 后请自建内容仓并配置上述变量；未配置时站点回退读取 `src/content` 下的示例内容。内容授权见 [CONTENT-LICENSE.md](CONTENT-LICENSE.md)。
 
@@ -142,6 +142,7 @@ CI（GitHub Actions）在每次 push / PR 时依次执行 `npm run build` → `n
 │   │   ├── account
 │   │   │   ├── page.tsx         # 用户中心：状态凹槽 + 文章管理
 │   │   │   ├── editor/page.tsx  # 文章编辑器（新增 / 编辑）
+│   │   │   ├── settings/page.tsx # AI 供应商设置（Key 加密写入 KV）
 │   │   │   └── notes/editor/page.tsx  # 便签编辑器（新增 / 编辑 / 删除）
 │   │   ├── api
 │   │   │   ├── auth/github/...  # OAuth 授权跳转与回调
@@ -150,6 +151,8 @@ CI（GitHub Actions）在每次 push / PR 时依次执行 `npm run build` → `n
 │   │   │   ├── posts            # 文章保存 / 删除（写回仓库）
 │   │   │   ├── notes            # 便签保存 / 删除（写回仓库）
 │   │   │   ├── upload           # 媒体上传到 R2
+│   │   │   ├── settings/ai      # AI 供应商配置（GET/PUT/DELETE + 连通性测试）
+│   │   │   ├── ai/chat          # 摘要生成的流式转发（OpenAI-compatible）
 │   │   │   └── keystatic/...    # Keystatic API 路由（可选）
 │   │   ├── keystatic/...        # Keystatic 管理后台（可选）
 │   │   ├── robots.ts            # robots.txt
@@ -181,9 +184,11 @@ CI（GitHub Actions）在每次 push / PR 时依次执行 `npm run build` → `n
 │   │       ├── EditorToolbar.tsx  # Markdown 工具栏
 │   │       ├── SmartisanFields.tsx # 文章 / 便签共用的元信息字段
 │   │       ├── PostEditor.tsx     # 分屏编辑器 + 实时预览 + 媒体弹窗
+│   │       ├── AiSettings.tsx     # AI 供应商表单（多 provider / 掩码 / 测试）
 │   │       └── NoteEditor.tsx     # 便签编辑器（单屏）
 │   ├── lib
 │   │   ├── auth.ts              # OAuth、白名单、HMAC 会话 Cookie
+│   │   ├── ai-config-store.ts   # AI Key 加解密存取（KV REST + AES-256-GCM）
 │   │   ├── github.ts            # 文章读写、frontmatter、Markdoc 转换
 │   │   ├── post-source.ts       # 内容源选择（GitHub 仓库 / 本地回退）
 │   │   ├── headings.ts          # 正文标题提取与锚点 id
@@ -264,6 +269,7 @@ CI（GitHub Actions）在每次 push / PR 时依次执行 `npm run build` → `n
 | `/account/editor` | 新增文章；Markdown 源码 + 实时预览分屏 |
 | `/account/editor?slug=xxx` | 编辑既有文章；支持删除（生成删除 commit） |
 | `/account/notes/editor` | 新增便签；支持删除（生成删除 commit） |
+| `/account/settings` | AI 供应商配置：多 Key、默认项、连通性测试（未配置 KV 时入口隐藏） |
 
 编辑器能力：
 
@@ -271,7 +277,8 @@ CI（GitHub Actions）在每次 push / PR 时依次执行 `npm run build` → `n
 - 实时预览：左写右看，Markdoc 即时排版；
 - 快捷键：`Ctrl/Cmd + S` 保存；
 - 未保存提示：页面顶部 `UNSAVED` 标记 + 关闭页面前的浏览器确认；
-- 媒体：上传至 R2，或直接粘贴外部链接，按图片 / 视频 / 文件生成对应 Markdown。
+- 媒体：上传至 R2，或直接粘贴外部链接，按图片 / 视频 / 文件生成对应 Markdown；
+- 摘要：调用已配置的 AI 供应商生成摘要，先进入预览，点「采用」才写入摘要字段，正文不受影响。
 
 ### 3. Cloudflare R2 媒体
 
@@ -282,7 +289,18 @@ CI（GitHub Actions）在每次 push / PR 时依次执行 `npm run build` → `n
 - 单文件上限 60MB，允许 `image/*`、`video/*`、`audio/*`、`application/pdf`；
 - 未配置 R2 时上传接口返回 503，但编辑器仍可粘贴外部链接。
 
-### 4. 环境变量
+### 4. AI 供应商配置（加密 KV）
+
+[ai-config-store.ts](src/lib/ai-config-store.ts) 负责加密与存取，前端表单在 [AiSettings.tsx](src/components/account/AiSettings.tsx)：
+
+- 存储：单条 KV 记录 `ai-config:v1`，整值为 AES-256-GCM 密文；账号 ID 复用 `R2_ACCOUNT_ID`，通过 Cloudflare KV REST API 读写，不引入任何 SDK；
+- 加密：主密钥由 `AUTH_SECRET` 经 HKDF（固定 salt + 用途标签）派生，不新增密钥变量；**轮换 `AUTH_SECRET` 会让旧密文无法解密，需要重新录入**；
+- 脱敏：接口只回传 `sk-****末4位`，明文 Key 不出服务端；编辑时 Key 留空表示沿用已保存值；
+- 连通性测试：对已保存的 provider 请求一次 `GET /models`，区分成功 / 401 / 余额不足 / 限流 / 超时；
+- 第一个消费者：文章编辑器「生成摘要」。[chat 接口](src/app/api/ai/chat/route.ts) 转发到 provider 的 `/chat/completions`，输入上限 8000 字（超出直接报错而非截断），`max_tokens` 上限 2048，并记录 `provider/model/token/耗时` 日志；
+- 未配置 `CF_KV_NAMESPACE_ID` 与 `CF_API_TOKEN` 时：生产环境工坊入口隐藏、接口返回 503；本地开发回退到 `.ai-config.local.json`（已在 `.gitignore` 中忽略）。
+
+### 5. 环境变量
 
 复制 [.env.example](.env.example) 为 `.env.local`：
 
@@ -305,6 +323,10 @@ R2_ACCESS_KEY_ID=
 R2_SECRET_ACCESS_KEY=
 R2_BUCKET=
 R2_PUBLIC_BASE_URL=
+
+# Cloudflare KV（AI 配置存储；账号 ID 复用 R2_ACCOUNT_ID）
+CF_KV_NAMESPACE_ID=
+CF_API_TOKEN=
 ```
 
 GitHub OAuth App 的 **Authorization callback URL** 填 `${SITE_URL}/api/auth/github/callback`。本地调试把 `SITE_URL` 设为 `http://localhost:3000`。
@@ -332,7 +354,7 @@ GitHub OAuth App 的 **Authorization callback URL** 填 `${SITE_URL}/api/auth/gi
 
 ### 2. 环境变量清单
 
-所有凭据均在运行时从环境变量读取，不写死在任何源码里。
+站点凭据（GitHub OAuth、内容仓、R2）均在运行时从环境变量读取，不写死在任何源码里；第三方 AI Key 例外——加密存储在 Cloudflare KV，由工坊设置页维护。
 
 | 变量 | 必填 | 说明 |
 | --- | --- | --- |
@@ -352,6 +374,8 @@ GitHub OAuth App 的 **Authorization callback URL** 填 `${SITE_URL}/api/auth/gi
 | `R2_SECRET_ACCESS_KEY` | 否 | R2 Secret Key |
 | `R2_BUCKET` | 否 | Bucket 名称 |
 | `R2_PUBLIC_BASE_URL` | 否 | 公开访问域名，如 `https://media.example.com` |
+| `CF_KV_NAMESPACE_ID` | 否 | AI 配置的 KV 命名空间 ID；不填则工坊 AI 设置入口隐藏 |
+| `CF_API_TOKEN` | 否 | 仅有 Workers KV 读写权限的 Cloudflare API Token |
 
 ### 3. 部署后必做
 

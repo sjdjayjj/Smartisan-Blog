@@ -9,6 +9,7 @@ import {
   Check,
   Loader2,
   Save,
+  Sparkles,
   Trash2,
   UploadCloud,
   X,
@@ -33,14 +34,19 @@ function deriveSlug(title: string): string {
   return `post-${stamp}`;
 }
 
+const SUMMARY_SYSTEM_PROMPT =
+  "你是中文博客编辑。请为给定文章正文生成一段 60-90 字的摘要，只输出摘要正文，不要加引号、前缀或解释。";
+
 export default function PostEditor({
   initial,
   initialDraft = null,
   r2Ready,
+  aiReady,
 }: {
   initial: PostDraft | null;
   initialDraft?: string | null;
   r2Ready: boolean;
+  aiReady: boolean;
 }) {
   const router = useRouter();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -62,6 +68,9 @@ export default function PostEditor({
   const [mediaUrl, setMediaUrl] = useState("");
   const [mediaKind, setMediaKind] = useState<"image" | "video" | "file">("image");
   const [uploading, setUploading] = useState(false);
+  const [summaryLoading, setSummaryLoading] = useState(false);
+  const [summaryDraft, setSummaryDraft] = useState("");
+  const [summaryError, setSummaryError] = useState("");
 
   const readTime = Math.max(2, Math.round(body.length / 400));
 
@@ -145,6 +154,83 @@ export default function PostEditor({
     } finally {
       setUploading(false);
     }
+  };
+
+  /** 生成摘要：只写入预览，用户确认后才落到 summary 字段，正文永远不动。 */
+  const generateSummary = async () => {
+    if (summaryLoading || !aiReady) return;
+    if (!body.trim()) {
+      showToast("正文为空，无法生成摘要");
+      return;
+    }
+    setSummaryLoading(true);
+    setSummaryDraft("");
+    setSummaryError("");
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => controller.abort(), 120_000);
+    try {
+      const response = await fetch("/api/ai/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          input: body,
+          system: SUMMARY_SYSTEM_PROMPT,
+          maxTokens: 400,
+        }),
+        signal: controller.signal,
+      });
+      if (!response.ok) {
+        const data = (await response.json().catch(() => ({}))) as { error?: string };
+        const message = data.error ?? "生成失败";
+        setSummaryError(message);
+        showToast(message);
+        return;
+      }
+      if (!response.body) {
+        setSummaryError("模型没有返回内容，请重试");
+        showToast("模型没有返回内容，请重试");
+        return;
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let text = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        text += decoder.decode(value, { stream: true });
+        setSummaryDraft(text.trim());
+      }
+      text += decoder.decode();
+      const finalText = text.trim();
+      if (!finalText) {
+        setSummaryDraft("");
+        setSummaryError("模型没有返回内容，请重试");
+        showToast("模型没有返回内容，请重试");
+        return;
+      }
+      setSummaryDraft(finalText);
+    } catch (error) {
+      const message =
+        (error as { name?: string })?.name === "AbortError"
+          ? "生成超时（120 秒），请稍后重试"
+          : "生成失败，请稍后再试";
+      setSummaryError(message);
+      showToast(message);
+    } finally {
+      window.clearTimeout(timer);
+      setSummaryLoading(false);
+    }
+  };
+
+  const adoptSummary = () => {
+    const value = summaryDraft.trim().slice(0, 200);
+    if (!value) return;
+    setSummary(value);
+    markDirty();
+    setSummaryDraft("");
+    setSummaryError("");
+    showToast("摘要已采纳，保存后生效");
   };
 
   const save = async () => {
@@ -339,10 +425,27 @@ export default function PostEditor({
             />
           </div>
 
-          <label className="space-y-1.5 block lg:col-span-1">
-            <span className="font-mono text-[10px] tracking-widest text-smartisan-muted uppercase">
-              摘要 · SUMMARY
-            </span>
+          <div className="space-y-1.5 lg:col-span-1">
+            <div className="flex items-center justify-between gap-2">
+              <span className="font-mono text-[10px] tracking-widest text-smartisan-muted uppercase">
+                摘要 · SUMMARY
+              </span>
+              {aiReady ? (
+                <button
+                  type="button"
+                  onClick={() => void generateSummary()}
+                  disabled={summaryLoading}
+                  className="st-btn px-2.5 py-1 rounded-lg text-[10px] font-sans text-smartisan-muted hover:text-smartisan-ink flex items-center gap-1 disabled:opacity-40"
+                >
+                  {summaryLoading ? (
+                    <Loader2 size={10} className="animate-spin text-smartisan-red" />
+                  ) : (
+                    <Sparkles size={10} className="text-smartisan-gold" />
+                  )}
+                  {summaryLoading ? "生成中…" : "生成摘要"}
+                </button>
+              ) : null}
+            </div>
             <input
               value={summary}
               onChange={(event) => {
@@ -352,7 +455,49 @@ export default function PostEditor({
               placeholder="一到两句话，会显示在卡片上"
               className="w-full bg-smartisan-sunken border border-smartisan-line rounded-lg px-3 py-2.5 text-sm font-sans text-smartisan-text placeholder:text-smartisan-faint outline-none focus:border-smartisan-red/50 transition"
             />
-          </label>
+
+            {summaryLoading || summaryDraft || summaryError ? (
+              <div className="st-well rounded-lg p-3 space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-mono text-[10px] tracking-widest text-smartisan-muted uppercase">
+                    AI 摘要预览
+                  </span>
+                  <span className="font-mono text-[10px] text-smartisan-faint">
+                    {summaryDraft.length} 字
+                  </span>
+                </div>
+                <p
+                  className={`text-xs font-sans leading-6 whitespace-pre-wrap ${
+                    summaryError ? "text-smartisan-red" : "text-smartisan-text"
+                  }`}
+                >
+                  {summaryError || summaryDraft || "正在生成…"}
+                </p>
+                {!summaryLoading && summaryDraft ? (
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={adoptSummary}
+                      className="st-btn px-3 py-1.5 rounded-lg text-[11px] font-sans text-smartisan-ink flex items-center gap-1"
+                    >
+                      <Check size={11} className="text-smartisan-gold" />
+                      采用
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSummaryDraft("");
+                        setSummaryError("");
+                      }}
+                      className="st-btn px-3 py-1.5 rounded-lg text-[11px] font-sans text-smartisan-muted hover:text-smartisan-ink"
+                    >
+                      取消
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
         </div>
       </section>
 

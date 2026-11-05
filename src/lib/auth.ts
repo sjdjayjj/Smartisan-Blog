@@ -1,5 +1,6 @@
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
 
 /**
  * 极简 GitHub OAuth 会话：授权码换取身份，白名单校验后写入 HMAC 签名 Cookie。
@@ -167,4 +168,23 @@ export function isAdmin(user: SessionUser | null): boolean {
   if (!user) return false;
   const allow = adminLogins();
   return allow.includes(user.login.toLowerCase());
+}
+
+export type AdminGuard =
+  | { ok: true; user: SessionUser }
+  | { ok: false; response: NextResponse };
+
+/**
+ * Route Handler 统一鉴权入口：未登录 / 非白名单都返回 401。
+ * 这样新增接口不会因为漏写判断而裸奔。
+ */
+export async function requireAdmin(): Promise<AdminGuard> {
+  const user = await getSession();
+  if (!user) {
+    return { ok: false, response: NextResponse.json({ error: "请先登录" }, { status: 401 }) };
+  }
+  if (!isAdmin(user)) {
+    return { ok: false, response: NextResponse.json({ error: "没有编辑权限" }, { status: 401 }) };
+  }
+  return { ok: true, user };
 }
