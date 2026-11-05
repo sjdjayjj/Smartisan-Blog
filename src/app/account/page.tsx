@@ -65,7 +65,7 @@ export default async function AccountPage() {
               {isAiConfigAvailable() ? (
                 <Link
                   href="/account/settings"
-                  className="st-btn px-4 py-3 rounded-xl flex items-center justify-center gap-2 text-xs font-sans text-smartisan-muted hover:text-smartisan-ink"
+                  className="st-btn st-btn-lg flex items-center justify-center gap-2 font-sans text-smartisan-muted hover:text-smartisan-ink"
                 >
                   <Settings size={14} className="text-smartisan-gold" />
                   AI 设置
@@ -73,7 +73,7 @@ export default async function AccountPage() {
               ) : null}
               <Link
                 href="/account/editor"
-                className="st-btn px-5 py-3 rounded-xl flex items-center justify-center gap-2 text-sm font-sans text-smartisan-ink"
+                className="st-btn st-btn-lg flex items-center justify-center gap-2 font-sans text-smartisan-ink"
               >
                 <FilePlus2 size={15} className="text-smartisan-red" />
                 新增文章
@@ -167,7 +167,7 @@ export default async function AccountPage() {
                       </span>
                       <Link
                         href={`/account/editor?slug=${encodeURIComponent(post.slug)}`}
-                        className="st-btn px-4 py-2 rounded-lg text-xs font-sans text-smartisan-ink flex items-center gap-1.5"
+                        className="st-btn st-btn-md font-sans text-smartisan-ink flex items-center gap-1.5"
                       >
                         <PencilLine size={12} className="text-smartisan-gold" />
                         编辑
@@ -195,7 +195,7 @@ export default async function AccountPage() {
               </span>
               <Link
                 href="/account/notes/editor"
-                className="st-btn px-4 py-2 rounded-lg text-xs font-sans text-smartisan-ink flex items-center gap-1.5"
+                className="st-btn st-btn-md font-sans text-smartisan-ink flex items-center gap-1.5"
               >
                 <StickyNote size={12} className="text-smartisan-red" />
                 新增便签
@@ -234,7 +234,7 @@ export default async function AccountPage() {
                     </span>
                     <Link
                       href={`/account/notes/editor?slug=${encodeURIComponent(note.slug)}`}
-                      className="st-btn px-4 py-2 rounded-lg text-xs font-sans text-smartisan-ink flex items-center gap-1.5"
+                      className="st-btn st-btn-md font-sans text-smartisan-ink flex items-center gap-1.5"
                     >
                       <PencilLine size={12} className="text-smartisan-gold" />
                       编辑

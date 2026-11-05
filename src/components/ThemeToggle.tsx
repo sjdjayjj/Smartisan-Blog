@@ -50,7 +50,7 @@ export default function ThemeToggle({
         onClick={() => choose(isLight ? "dark" : "light")}
         aria-label={isLight ? "切换到深色主题" : "切换到浅色主题"}
         title={isLight ? "切换到深色主题" : "切换到浅色主题"}
-        className={`tap-44 relative st-btn w-9 h-9 rounded-lg flex items-center justify-center text-smartisan-muted hover:text-smartisan-ink ${className}`}
+        className={`tap-44 relative st-btn st-btn-icon-md flex items-center justify-center text-smartisan-muted hover:text-smartisan-ink ${className}`}
       >
         {isLight ? (
           <Sun size={14} className="text-smartisan-gold" />

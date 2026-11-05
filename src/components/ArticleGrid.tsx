@@ -587,7 +587,7 @@ export default function ArticleGrid({
                       onClick={toggleLamp}
                       aria-pressed={lamp}
                       title="将正文切换为米白纸质阅读态"
-                      className="tap-44-y relative st-btn inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[11px] font-sans text-smartisan-muted hover:text-smartisan-ink"
+                      className="tap-44-y relative st-btn st-btn-sm st-btn-pill inline-flex items-center gap-2 font-sans text-smartisan-muted hover:text-smartisan-ink"
                     >
                       <Lamp
                         size={12}
@@ -694,7 +694,7 @@ export default function ArticleGrid({
                     <button
                       type="button"
                       onClick={() => setFailedSlug(null)}
-                      className="st-btn tap-44-y relative inline-flex items-center px-4 py-2 rounded-lg text-xs font-sans text-smartisan-ink"
+                      className="st-btn st-btn-md tap-44-y relative inline-flex items-center font-sans text-smartisan-ink"
                     >
                       重新加载
                     </button>
@@ -726,7 +726,7 @@ export default function ArticleGrid({
                       type="button"
                       disabled={!prevPost}
                       onClick={() => prevPost && switchArticle(prevPost)}
-                      className="tap-44-y relative st-btn min-w-0 px-3 py-2 rounded-lg text-[11px] font-sans text-smartisan-muted hover:text-smartisan-ink flex items-center gap-1.5 disabled:opacity-40 disabled:pointer-events-none"
+                      className="tap-44-y relative st-btn st-btn-md min-w-0 font-sans text-smartisan-muted hover:text-smartisan-ink flex items-center gap-1.5 disabled:opacity-40 disabled:pointer-events-none"
                     >
                       <ChevronLeft size={12} className="shrink-0 text-smartisan-gold" />
                       <span className="truncate">
@@ -737,7 +737,7 @@ export default function ArticleGrid({
                       type="button"
                       disabled={!nextPost}
                       onClick={() => nextPost && switchArticle(nextPost)}
-                      className="tap-44-y relative st-btn min-w-0 px-3 py-2 rounded-lg text-[11px] font-sans text-smartisan-muted hover:text-smartisan-ink flex items-center justify-end gap-1.5 disabled:opacity-40 disabled:pointer-events-none"
+                      className="tap-44-y relative st-btn st-btn-md min-w-0 font-sans text-smartisan-muted hover:text-smartisan-ink flex items-center justify-end gap-1.5 disabled:opacity-40 disabled:pointer-events-none"
                     >
                       <span className="truncate">
                         {nextPost ? `下一篇 · ${nextPost.title}` : "已经是最后一篇"}
@@ -753,7 +753,7 @@ export default function ArticleGrid({
                     <button
                       type="button"
                       onClick={shareArticle}
-                      className="tap-44-y relative st-btn px-4 py-2 rounded-lg text-smartisan-text hover:text-smartisan-ink flex items-center gap-2"
+                      className="tap-44-y relative st-btn st-btn-md text-smartisan-text hover:text-smartisan-ink flex items-center gap-2"
                     >
                       <Share2 size={12} className="text-smartisan-red" />
                       分享本文
@@ -761,7 +761,7 @@ export default function ArticleGrid({
                     <button
                       type="button"
                       onClick={closeArticle}
-                      className="tap-44-y relative st-btn px-4 py-2 rounded-lg text-smartisan-ink"
+                      className="tap-44-y relative st-btn st-btn-md text-smartisan-ink"
                     >
                       完成阅读
                     </button>

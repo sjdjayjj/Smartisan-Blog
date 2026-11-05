@@ -170,7 +170,7 @@ export default function NoteEditor({
         <div className="flex items-center gap-3 min-w-0">
           <Link
             href="/account"
-            className="st-btn w-9 h-9 rounded-lg flex items-center justify-center text-smartisan-muted hover:text-smartisan-ink"
+            className="st-btn st-btn-icon-lg flex items-center justify-center text-smartisan-muted hover:text-smartisan-ink"
             aria-label="返回工坊"
           >
             <ArrowLeft size={14} />
@@ -191,7 +191,7 @@ export default function NoteEditor({
               type="button"
               onClick={remove}
               disabled={deleting}
-              className="st-btn px-3 py-2 rounded-lg text-xs font-sans text-smartisan-muted hover:text-smartisan-red flex items-center gap-1.5"
+              className="st-btn st-btn-lg font-sans text-smartisan-muted hover:text-smartisan-red flex items-center gap-1.5"
             >
               {deleting ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
               删除
@@ -201,7 +201,7 @@ export default function NoteEditor({
             type="button"
             onClick={save}
             disabled={saving}
-            className="st-btn px-5 py-2.5 rounded-xl text-sm font-sans text-smartisan-ink flex items-center gap-2"
+            className="st-btn st-btn-lg font-sans text-smartisan-ink flex items-center gap-2"
           >
             {saving ? (
               <Loader2 size={14} className="animate-spin text-smartisan-red" />
@@ -309,7 +309,7 @@ export default function NoteEditor({
                   playMechanicalClick(800, 0.03);
                   setTab(key);
                 }}
-                className={`px-3 py-1.5 rounded-lg font-mono text-[11px] tracking-wide transition ${
+                className={`st-btn-sm font-mono tracking-wide transition ${
                   tab === key
                     ? "bg-smartisan-red/10 text-smartisan-red border border-smartisan-red/30"
                     : "text-smartisan-muted hover:text-smartisan-ink border border-transparent"
@@ -332,7 +332,7 @@ export default function NoteEditor({
                 key={item.label}
                 type="button"
                 onClick={() => insertAtCursor(item.before, item.after ?? "")}
-                className="px-2 py-1 rounded-md font-mono text-[10px] text-smartisan-muted hover:text-smartisan-ink hover:bg-smartisan-veil transition"
+                className="st-btn-sm font-mono text-smartisan-muted hover:text-smartisan-ink hover:bg-smartisan-veil transition"
               >
                 {item.label}
               </button>

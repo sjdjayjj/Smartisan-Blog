@@ -37,7 +37,7 @@ export default function FeaturedNote({
           {canEdit ? (
             <Link
               href="/account/notes/editor"
-              className="tap-44-y relative st-btn px-3 py-1.5 rounded-lg text-[11px] font-sans text-smartisan-text flex items-center gap-1.5 hover:text-smartisan-ink"
+              className="tap-44-y relative st-btn st-btn-sm font-sans text-smartisan-text flex items-center gap-1.5 hover:text-smartisan-ink"
             >
               <Plus size={12} className="text-smartisan-red" />
               新增便签
@@ -46,7 +46,7 @@ export default function FeaturedNote({
           {canEdit && latest ? (
             <Link
               href={`/account/notes/editor?slug=${encodeURIComponent(latest.slug)}`}
-              className="tap-44-y relative st-btn px-3 py-1.5 rounded-lg text-[11px] font-sans text-smartisan-text flex items-center gap-1.5 hover:text-smartisan-ink"
+              className="tap-44-y relative st-btn st-btn-sm font-sans text-smartisan-text flex items-center gap-1.5 hover:text-smartisan-ink"
             >
               <PencilLine size={12} className="text-smartisan-gold" />
               编辑便签
@@ -109,7 +109,7 @@ export default function FeaturedNote({
                       type="button"
                       onClick={() => openNoteModal(note.slug)}
                       aria-label={`为《${note.title}》生成便签长图`}
-                      className="tap-44-y relative st-btn px-3 py-1.5 rounded-md text-xs font-sans text-smartisan-text flex items-center gap-1.5 hover:text-smartisan-ink"
+                      className="tap-44-y relative st-btn st-btn-sm font-sans text-smartisan-text flex items-center gap-1.5 hover:text-smartisan-ink"
                     >
                       <ArrowUpRight size={12} className="text-smartisan-red" />
                       生成便签长图

@@ -76,7 +76,7 @@ export default function EditorToolbar({
       <button
         type="button"
         onClick={toggleMenu}
-        className={`st-btn w-9 h-9 rounded-lg flex items-center justify-center ${
+        className={`st-btn st-btn-icon-md flex items-center justify-center ${
           showMenu ? "text-smartisan-red" : "text-smartisan-muted hover:text-smartisan-ink"
         }`}
         aria-label={showMenu ? "收起工具栏" : "展开工具栏"}
@@ -91,7 +91,7 @@ export default function EditorToolbar({
             key={tool.key}
             type="button"
             onClick={() => (tool.action ? tool.action() : insert(tool.before ?? "", tool.after))}
-            className="st-btn w-9 h-9 rounded-lg flex items-center justify-center text-smartisan-muted hover:text-smartisan-ink"
+            className="st-btn st-btn-icon-md flex items-center justify-center text-smartisan-muted hover:text-smartisan-ink"
             aria-label={tool.label}
             title={tool.label}
           >

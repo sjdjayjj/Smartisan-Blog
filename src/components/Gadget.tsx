@@ -345,7 +345,7 @@ export default function Gadget() {
             type="button"
             onClick={toggleRadio}
             aria-pressed={playing}
-            className="tap-44-y relative st-btn px-6 py-3 rounded-xl font-mono text-xs text-smartisan-ink flex items-center justify-center gap-2.5 shadow-lg border border-smartisan-line active:scale-95 transition md:w-full"
+            className="tap-44-y relative st-btn st-btn-lg font-mono text-smartisan-ink flex items-center justify-center gap-2.5 shadow-lg border border-smartisan-line active:scale-95 transition md:w-full"
           >
             {playing ? (
               <Pause size={13} className="text-smartisan-red" />
@@ -360,7 +360,7 @@ export default function Gadget() {
               type="button"
               onClick={flipSide}
               title="切换磁带 A/B 面"
-              className="tap-44-y relative st-btn px-3 h-10 rounded-lg font-mono text-[10px] text-smartisan-muted hover:text-smartisan-ink tracking-widest md:flex-1"
+              className="tap-44-y relative st-btn st-btn-lg font-mono text-smartisan-muted hover:text-smartisan-ink tracking-widest md:flex-1"
             >
               翻面 {side === "A" ? "B" : "A"}
             </button>
@@ -369,7 +369,7 @@ export default function Gadget() {
               onClick={nextStation}
               title="下一台"
               aria-label="下一台"
-              className="tap-44 relative st-btn w-10 h-10 rounded-lg flex items-center justify-center text-smartisan-muted hover:text-smartisan-ink"
+              className="tap-44 relative st-btn st-btn-icon-lg flex items-center justify-center text-smartisan-muted hover:text-smartisan-ink"
             >
               <RotateCw size={13} />
             </button>

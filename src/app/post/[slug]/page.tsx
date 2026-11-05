@@ -101,7 +101,7 @@ function UnavailablePanel() {
           </p>
           <Link
             href="/"
-            className="st-btn tap-44-y relative inline-flex items-center gap-2 px-4 py-2 rounded-lg text-smartisan-ink"
+            className="st-btn st-btn-md tap-44-y relative inline-flex items-center gap-2 text-smartisan-ink"
           >
             <Home size={12} className="text-smartisan-red" />
             返回自留地
@@ -174,14 +174,14 @@ export default async function PostPage({ params }: PostPageProps) {
             <div className="flex flex-wrap items-center gap-2">
               <Link
                 href="/#articles"
-                className="st-btn tap-44-y relative inline-flex items-center gap-2 px-4 py-2 rounded-lg text-smartisan-muted hover:text-smartisan-ink"
+                className="st-btn st-btn-md tap-44-y relative inline-flex items-center gap-2 text-smartisan-muted hover:text-smartisan-ink"
               >
                 <ArrowLeft size={12} className="text-smartisan-gold" />
                 全部文集
               </Link>
               <Link
                 href="/"
-                className="st-btn tap-44-y relative inline-flex items-center gap-2 px-4 py-2 rounded-lg text-smartisan-ink"
+                className="st-btn st-btn-md tap-44-y relative inline-flex items-center gap-2 text-smartisan-ink"
               >
                 <Home size={12} className="text-smartisan-red" />
                 返回自留地

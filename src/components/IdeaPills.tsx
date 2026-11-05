@@ -163,7 +163,7 @@ export default function IdeaPills() {
         aria-label="打开灵感胶囊"
         aria-haspopup="dialog"
         title="灵感胶囊"
-        className="tap-44-y relative st-btn flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-lg text-xs font-mono text-smartisan-muted hover:text-smartisan-ink transition"
+        className="tap-44-y relative st-btn st-btn-md flex items-center gap-1.5 font-mono text-smartisan-muted hover:text-smartisan-ink transition"
       >
         <Lightbulb size={13} className="text-smartisan-gold" />
         <span className="hidden sm:inline">灵感</span>
@@ -203,7 +203,7 @@ export default function IdeaPills() {
                 type="button"
                 onClick={() => setOpen(false)}
                 aria-label="关闭灵感胶囊"
-                className="tap-44 relative w-8 h-8 rounded-full bg-smartisan-socket border border-smartisan-line text-smartisan-muted hover:text-smartisan-ink flex items-center justify-center"
+                className="tap-44 relative w-9 h-9 rounded-full bg-smartisan-socket border border-smartisan-line text-smartisan-muted hover:text-smartisan-ink flex items-center justify-center"
               >
                 <X size={13} />
               </button>
@@ -233,7 +233,7 @@ export default function IdeaPills() {
                     type="button"
                     onClick={() => setTone(key)}
                     aria-pressed={tone === key}
-                    className={`tap-44-y relative st-btn flex-1 rounded-lg px-2 py-1.5 text-[11px] font-sans flex items-center justify-center gap-1.5 transition ${
+                    className={`tap-44-y relative st-btn st-btn-sm flex-1 font-sans flex items-center justify-center gap-1.5 transition ${
                       tone === key
                         ? `text-smartisan-ink ${toneMeta[key].ring}`
                         : "text-smartisan-muted"
@@ -253,7 +253,7 @@ export default function IdeaPills() {
                   type="button"
                   onClick={add}
                   disabled={!text.trim()}
-                  className="tap-44-y relative st-btn px-4 py-2 rounded-lg text-[11px] font-sans text-smartisan-ink flex items-center gap-1.5 disabled:opacity-45"
+                  className="tap-44-y relative st-btn st-btn-md font-sans text-smartisan-ink flex items-center gap-1.5 disabled:opacity-45"
                 >
                   <Plus size={12} className="text-smartisan-red" />
                   装进胶囊
@@ -307,7 +307,7 @@ export default function IdeaPills() {
                             playMechanicalClick(900, 0.04);
                             setOpen(false);
                           }}
-                          className="tap-44-y relative st-btn px-2.5 py-1 rounded-md text-[10px] font-sans text-smartisan-text hover:text-smartisan-ink flex items-center gap-1.5"
+                          className="tap-44-y relative st-btn st-btn-sm font-sans text-smartisan-text hover:text-smartisan-ink flex items-center gap-1.5"
                         >
                           <StickyNote size={10} className="text-smartisan-gold" />
                           转为便签
@@ -318,7 +318,7 @@ export default function IdeaPills() {
                             playMechanicalClick(900, 0.04);
                             setOpen(false);
                           }}
-                          className="tap-44-y relative st-btn px-2.5 py-1 rounded-md text-[10px] font-sans text-smartisan-muted hover:text-smartisan-ink flex items-center gap-1.5"
+                          className="tap-44-y relative st-btn st-btn-sm font-sans text-smartisan-muted hover:text-smartisan-ink flex items-center gap-1.5"
                         >
                           <FileText size={10} className="text-smartisan-red" />
                           转为文章

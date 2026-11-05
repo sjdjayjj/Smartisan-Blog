@@ -745,7 +745,7 @@ export default function PostEditor({
         <div className="flex items-center gap-3 min-w-0">
           <Link
             href="/account"
-            className="st-btn w-9 h-9 rounded-lg flex items-center justify-center text-smartisan-muted hover:text-smartisan-ink"
+            className="st-btn st-btn-icon-lg flex items-center justify-center text-smartisan-muted hover:text-smartisan-ink"
             aria-label="返回文章列表"
           >
             <ArrowLeft size={14} />
@@ -767,7 +767,7 @@ export default function PostEditor({
               type="button"
               onClick={remove}
               disabled={deleting}
-              className="st-btn px-3 py-2 rounded-lg text-xs font-sans text-smartisan-muted hover:text-smartisan-red flex items-center gap-1.5"
+              className="st-btn st-btn-lg font-sans text-smartisan-muted hover:text-smartisan-red flex items-center gap-1.5"
             >
               {deleting ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
               删除
@@ -777,7 +777,7 @@ export default function PostEditor({
             type="button"
             onClick={save}
             disabled={saving}
-            className="st-btn px-5 py-2.5 rounded-xl text-sm font-sans text-smartisan-ink flex items-center gap-2"
+            className="st-btn st-btn-lg font-sans text-smartisan-ink flex items-center gap-2"
           >
             {saving ? (
               <Loader2 size={14} className="animate-spin text-smartisan-red" />
@@ -863,7 +863,7 @@ export default function PostEditor({
                         }
                       }}
                       disabled={summaryLoading}
-                      className="st-btn px-2 py-1 rounded-lg text-[10px] font-sans text-smartisan-muted hover:text-smartisan-ink flex items-center gap-1 disabled:opacity-40"
+                      className="st-btn st-btn-sm font-sans text-smartisan-muted hover:text-smartisan-ink flex items-center gap-1 disabled:opacity-40"
                     >
                       {summaryLoading ? (
                         <Loader2 size={10} className="animate-spin text-smartisan-red" />
@@ -883,7 +883,7 @@ export default function PostEditor({
                         }
                       }}
                       disabled={tagsLoading}
-                      className="st-btn px-2 py-1 rounded-lg text-[10px] font-sans text-smartisan-muted hover:text-smartisan-ink flex items-center gap-1 disabled:opacity-40"
+                      className="st-btn st-btn-sm font-sans text-smartisan-muted hover:text-smartisan-ink flex items-center gap-1 disabled:opacity-40"
                     >
                       {tagsLoading ? (
                         <Loader2 size={10} className="animate-spin text-smartisan-gold" />
@@ -921,7 +921,7 @@ export default function PostEditor({
                   playMechanicalClick(800, 0.03);
                   setTab(key);
                 }}
-                className={`px-3 py-1.5 rounded-lg font-mono text-[11px] tracking-wide transition ${
+                className={`st-btn-sm font-mono tracking-wide transition ${
                   tab === key
                     ? "bg-smartisan-red/10 text-smartisan-red border border-smartisan-red/30"
                     : "text-smartisan-muted hover:text-smartisan-ink border border-transparent"
@@ -944,7 +944,7 @@ export default function PostEditor({
                   }
                 }}
                 disabled={proofreadLoading}
-                className="st-btn px-2.5 py-1.5 rounded-lg text-[10px] font-sans text-smartisan-muted hover:text-smartisan-ink flex items-center gap-1 disabled:opacity-40"
+                className="st-btn st-btn-sm font-sans text-smartisan-muted hover:text-smartisan-ink flex items-center gap-1 disabled:opacity-40"
               >
                 {proofreadLoading ? (
                   <Loader2 size={10} className="animate-spin text-smartisan-red" />
@@ -1041,7 +1041,7 @@ export default function PostEditor({
               type="button"
               title={item.hint}
               onClick={() => void startRewrite(item.key)}
-              className="px-2.5 py-1.5 rounded-md font-sans text-[11px] text-smartisan-text hover:bg-smartisan-veil hover:text-smartisan-ink transition"
+              className="st-btn-sm font-sans text-smartisan-text hover:bg-smartisan-veil hover:text-smartisan-ink transition"
             >
               {item.label}
             </button>
@@ -1081,7 +1081,7 @@ export default function PostEditor({
               <button
                 type="button"
                 onClick={stopAi}
-                className="st-btn px-3 py-1.5 rounded-lg text-[11px] font-sans text-smartisan-muted hover:text-smartisan-red"
+                className="st-btn st-btn-sm font-sans text-smartisan-muted hover:text-smartisan-red"
               >
                 停止
               </button>
@@ -1090,7 +1090,7 @@ export default function PostEditor({
               type="button"
               onClick={adoptSummary}
               disabled={summaryLoading || !summaryDraft.trim()}
-              className="st-btn px-3 py-1.5 rounded-lg text-[11px] font-sans text-smartisan-ink flex items-center gap-1 disabled:opacity-40"
+              className="st-btn st-btn-sm font-sans text-smartisan-ink flex items-center gap-1 disabled:opacity-40"
             >
               <Check size={11} className="text-smartisan-gold" />
               采用
@@ -1098,7 +1098,7 @@ export default function PostEditor({
             <button
               type="button"
               onClick={closeAiPanel}
-              className="st-btn px-3 py-1.5 rounded-lg text-[11px] font-sans text-smartisan-muted hover:text-smartisan-ink"
+              className="st-btn st-btn-sm font-sans text-smartisan-muted hover:text-smartisan-ink"
             >
               取消
             </button>
@@ -1154,7 +1154,7 @@ export default function PostEditor({
               <button
                 type="button"
                 onClick={stopAi}
-                className="st-btn px-3 py-1.5 rounded-lg text-[11px] font-sans text-smartisan-muted hover:text-smartisan-red"
+                className="st-btn st-btn-sm font-sans text-smartisan-muted hover:text-smartisan-red"
               >
                 停止
               </button>
@@ -1163,7 +1163,7 @@ export default function PostEditor({
               type="button"
               onClick={adoptRewrite}
               disabled={rewriteLoading || !rewriteText.trim()}
-              className="st-btn px-3 py-1.5 rounded-lg text-[11px] font-sans text-smartisan-ink flex items-center gap-1 disabled:opacity-40"
+              className="st-btn st-btn-sm font-sans text-smartisan-ink flex items-center gap-1 disabled:opacity-40"
             >
               <Check size={11} className="text-smartisan-gold" />
               采用替换
@@ -1171,7 +1171,7 @@ export default function PostEditor({
             <button
               type="button"
               onClick={cancelRewrite}
-              className="st-btn px-3 py-1.5 rounded-lg text-[11px] font-sans text-smartisan-muted hover:text-smartisan-ink"
+              className="st-btn st-btn-sm font-sans text-smartisan-muted hover:text-smartisan-ink"
             >
               取消
             </button>
@@ -1201,7 +1201,7 @@ export default function PostEditor({
               <button
                 type="button"
                 onClick={stopAi}
-                className="st-btn px-2.5 py-1 rounded-lg text-[10px] font-sans text-smartisan-muted hover:text-smartisan-red"
+                className="st-btn st-btn-sm font-sans text-smartisan-muted hover:text-smartisan-red"
               >
                 停止
               </button>
@@ -1264,7 +1264,7 @@ export default function PostEditor({
                       type="button"
                       onClick={() => revealIssue(issue)}
                       disabled={!issue.located}
-                      className="st-btn px-2.5 py-1 rounded-md text-[10px] font-sans text-smartisan-muted hover:text-smartisan-ink disabled:opacity-40"
+                      className="st-btn st-btn-sm font-sans text-smartisan-muted hover:text-smartisan-ink disabled:opacity-40"
                     >
                       定位
                     </button>
@@ -1272,7 +1272,7 @@ export default function PostEditor({
                       type="button"
                       onClick={() => adoptIssue(issue)}
                       disabled={issue.stale}
-                      className="st-btn px-2.5 py-1 rounded-md text-[10px] font-sans text-smartisan-ink disabled:opacity-40"
+                      className="st-btn st-btn-sm font-sans text-smartisan-ink disabled:opacity-40"
                     >
                       {issue.stale ? "原文已变更" : "采用"}
                     </button>
@@ -1306,7 +1306,7 @@ export default function PostEditor({
               <button
                 type="button"
                 onClick={stopAi}
-                className="st-btn px-2.5 py-1 rounded-lg text-[10px] font-sans text-smartisan-muted hover:text-smartisan-red"
+                className="st-btn st-btn-sm font-sans text-smartisan-muted hover:text-smartisan-red"
               >
                 停止
               </button>
@@ -1364,7 +1364,7 @@ export default function PostEditor({
                   type="button"
                   onClick={adoptDescription}
                   disabled={!tagsResult.description}
-                  className="st-btn px-3 py-1.5 rounded-lg text-[11px] font-sans text-smartisan-ink flex items-center gap-1 disabled:opacity-40"
+                  className="st-btn st-btn-sm font-sans text-smartisan-ink flex items-center gap-1 disabled:opacity-40"
                 >
                   <Check size={11} className="text-smartisan-gold" />
                   采用描述
@@ -1372,7 +1372,7 @@ export default function PostEditor({
                 <button
                   type="button"
                   onClick={closeAiPanel}
-                  className="st-btn px-3 py-1.5 rounded-lg text-[11px] font-sans text-smartisan-muted hover:text-smartisan-ink"
+                  className="st-btn st-btn-sm font-sans text-smartisan-muted hover:text-smartisan-ink"
                 >
                   取消
                 </button>
@@ -1416,7 +1416,7 @@ export default function PostEditor({
             <button
               type="button"
               onClick={() => setMediaOpen(false)}
-              className="absolute top-3 right-3 w-8 h-8 rounded-full bg-smartisan-socket border border-smartisan-line text-smartisan-muted hover:text-smartisan-ink flex items-center justify-center"
+              className="absolute top-3 right-3 w-9 h-9 rounded-full bg-smartisan-socket border border-smartisan-line text-smartisan-muted hover:text-smartisan-ink flex items-center justify-center"
               aria-label="关闭"
             >
               <X size={13} />
@@ -1483,7 +1483,7 @@ export default function PostEditor({
                     key={item.key}
                     type="button"
                     onClick={() => setMediaKind(item.key)}
-                    className={`px-3 py-1.5 rounded-lg font-mono text-[10px] border transition ${
+                    className={`st-btn-sm font-mono border transition ${
                       mediaKind === item.key
                         ? "border-smartisan-red/40 text-smartisan-red bg-smartisan-red/10"
                         : "border-smartisan-line text-smartisan-muted hover:text-smartisan-ink"
@@ -1498,7 +1498,7 @@ export default function PostEditor({
             <button
               type="button"
               onClick={() => insertMedia(mediaUrl.trim(), mediaKind)}
-              className="st-btn mt-5 w-full rounded-xl px-4 py-2.5 text-sm font-sans text-smartisan-ink"
+              className="st-btn st-btn-lg mt-5 w-full font-sans text-smartisan-ink"
             >
               插入到正文
             </button>

@@ -221,7 +221,7 @@ export default function AiSettings({
             type="button"
             onClick={addRow}
             disabled={!ready}
-            className="st-btn px-4 py-2 rounded-lg text-xs font-sans text-smartisan-ink inline-flex items-center gap-1.5 disabled:opacity-40"
+            className="st-btn st-btn-lg font-sans text-smartisan-ink inline-flex items-center gap-1.5 disabled:opacity-40"
           >
             <Plus size={12} className="text-smartisan-red" />
             添加供应商
@@ -262,7 +262,7 @@ export default function AiSettings({
                     type="button"
                     onClick={() => void test(row.id)}
                     disabled={!ready || !isSaved || Boolean(testingId)}
-                    className="st-btn px-3 py-1.5 rounded-lg text-[11px] font-sans text-smartisan-muted hover:text-smartisan-ink inline-flex items-center gap-1.5 disabled:opacity-40"
+                    className="st-btn st-btn-md font-sans text-smartisan-muted hover:text-smartisan-ink inline-flex items-center gap-1.5 disabled:opacity-40"
                   >
                     {testingId === row.id ? (
                       <Loader2 size={11} className="animate-spin text-smartisan-gold" />
@@ -274,7 +274,7 @@ export default function AiSettings({
                   <button
                     type="button"
                     onClick={() => removeRow(row.id)}
-                    className="st-btn w-8 h-8 rounded-lg flex items-center justify-center text-smartisan-muted hover:text-smartisan-red"
+                    className="st-btn st-btn-icon-md flex items-center justify-center text-smartisan-muted hover:text-smartisan-red"
                     aria-label="移除供应商"
                   >
                     <Trash2 size={12} />
@@ -355,7 +355,7 @@ export default function AiSettings({
           type="button"
           onClick={addRow}
           disabled={!ready}
-          className="st-btn px-4 py-2 rounded-lg text-xs font-sans text-smartisan-muted hover:text-smartisan-ink inline-flex items-center gap-1.5 disabled:opacity-40"
+          className="st-btn st-btn-lg font-sans text-smartisan-muted hover:text-smartisan-ink inline-flex items-center gap-1.5 disabled:opacity-40"
         >
           <Plus size={12} />
           添加供应商
@@ -367,7 +367,7 @@ export default function AiSettings({
               type="button"
               onClick={() => void clear()}
               disabled={clearing}
-              className="st-btn px-3 py-2 rounded-lg text-xs font-sans text-smartisan-muted hover:text-smartisan-red inline-flex items-center gap-1.5 disabled:opacity-40"
+              className="st-btn st-btn-lg font-sans text-smartisan-muted hover:text-smartisan-red inline-flex items-center gap-1.5 disabled:opacity-40"
             >
               {clearing ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
               清除全部
@@ -377,7 +377,7 @@ export default function AiSettings({
             type="button"
             onClick={() => void save()}
             disabled={!ready || saving}
-            className="st-btn px-5 py-2.5 rounded-xl text-sm font-sans text-smartisan-ink flex items-center gap-2 disabled:opacity-40"
+            className="st-btn st-btn-lg font-sans text-smartisan-ink flex items-center gap-2 disabled:opacity-40"
           >
             {saving ? (
               <Loader2 size={14} className="animate-spin text-smartisan-red" />

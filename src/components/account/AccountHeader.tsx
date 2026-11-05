@@ -33,7 +33,7 @@ export default function AccountHeader({ user }: { user: SessionUser }) {
         <div className="flex items-center gap-2 sm:gap-3">
           <Link
             href="/"
-            className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-sans text-smartisan-muted hover:text-smartisan-ink hover:bg-smartisan-veil transition"
+            className="hidden sm:flex items-center gap-1.5 h-9 px-3 rounded-lg text-xs font-sans text-smartisan-muted hover:text-smartisan-ink hover:bg-smartisan-veil transition"
           >
             <ArrowLeft size={13} />
             返回首页
@@ -44,7 +44,7 @@ export default function AccountHeader({ user }: { user: SessionUser }) {
           <span className="hidden sm:inline-flex">
             <ThemeToggle />
           </span>
-          <div className="flex items-center gap-2 px-2 py-1.5 rounded-full bg-smartisan-sunken border border-smartisan-hairline shadow-inner">
+          <div className="flex items-center gap-2 h-9 px-2 rounded-full bg-smartisan-sunken border border-smartisan-hairline shadow-inner">
             <UserAvatar
               avatar={user.avatar}
               login={user.login}
@@ -58,7 +58,7 @@ export default function AccountHeader({ user }: { user: SessionUser }) {
           <form action="/api/auth/signout" method="post">
             <button
               type="submit"
-              className="st-btn w-9 h-9 rounded-lg flex items-center justify-center text-smartisan-muted hover:text-smartisan-red"
+              className="st-btn st-btn-icon-md flex items-center justify-center text-smartisan-muted hover:text-smartisan-red"
               aria-label="退出登录"
               title="退出登录"
             >

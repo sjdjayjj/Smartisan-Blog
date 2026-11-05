@@ -88,7 +88,7 @@ export default function Hero({
               <button
                 type="button"
                 onClick={scrollToArticles}
-                className="tap-44-y relative st-btn px-4 py-1.5 rounded-lg text-xs font-mono text-smartisan-text flex items-center gap-2"
+                className="tap-44-y relative st-btn st-btn-sm font-mono text-smartisan-text flex items-center gap-2"
               >
                 <ScrollText size={13} className="text-smartisan-red" />
                 浏览文章库
@@ -96,7 +96,7 @@ export default function Hero({
               <button
                 type="button"
                 onClick={() => openNoteModal()}
-                className="tap-44-y relative st-btn px-4 py-1.5 rounded-lg text-xs font-mono text-smartisan-gold flex items-center gap-2"
+                className="tap-44-y relative st-btn st-btn-sm font-mono text-smartisan-gold flex items-center gap-2"
               >
                 <Feather size={13} />
                 展开置顶便签

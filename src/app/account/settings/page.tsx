@@ -34,7 +34,7 @@ export default async function AiSettingsPage() {
           <div className="flex items-start gap-4">
             <Link
               href="/account"
-              className="st-btn w-9 h-9 rounded-lg flex items-center justify-center text-smartisan-muted hover:text-smartisan-ink shrink-0"
+              className="st-btn st-btn-icon-md flex items-center justify-center text-smartisan-muted hover:text-smartisan-ink shrink-0"
               aria-label="返回工坊"
             >
               <ArrowLeft size={14} />

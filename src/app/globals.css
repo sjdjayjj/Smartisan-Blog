@@ -212,6 +212,80 @@ body {
   transform: translateY(1px);
 }
 
+/*
+ * 按钮尺寸档位：沿用 .st-btn 的材质与描边，只收敛高度 / 内边距 / 字号。
+ * 同一行或同一按钮组必须用同一档，层级靠字号与文字色区分，不靠高度差。
+ *   sm 28 —— 浮层小操作、行内次级操作、工具栏文字按钮
+ *   md 36 —— 常规操作（列表项编辑、设置页、头部文字链）
+ *   lg 40 —— 页面级主操作（新增 / 发布 / 保存 / 电台主控）
+ */
+.st-btn-sm,
+.st-btn-md,
+.st-btn-lg {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.st-btn-sm {
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 8px;
+  font-size: 11px;
+}
+
+.st-btn-md {
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.st-btn-lg {
+  height: 40px;
+  padding: 0 18px;
+  border-radius: 12px;
+  font-size: 14px;
+}
+
+/* 图标按钮：正方形，边长与同档文字按钮一致，保证行内基线齐平。 */
+.st-btn-icon-sm,
+.st-btn-icon-md,
+.st-btn-icon-lg {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  padding: 0;
+  line-height: 1;
+}
+
+.st-btn-icon-sm {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+}
+
+.st-btn-icon-md {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+}
+
+.st-btn-icon-lg {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+}
+
+/* 胶囊 / 圆形变体：只改轮廓，高度仍由上面的档位决定；用于阅读辅助与回到顶部。 */
+.st-btn-pill {
+  border-radius: 9999px;
+}
+
 /* 经典细红线 */
 .st-fine-red-line {
   position: relative;

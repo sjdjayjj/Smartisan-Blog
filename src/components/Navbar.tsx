@@ -95,7 +95,7 @@ export default function Navbar({ canEdit = false }: { canEdit?: boolean }) {
             aria-label={menuOpen ? "关闭导航菜单" : "打开导航菜单"}
             aria-expanded={menuOpen}
             aria-controls="mobile-nav"
-            className="tap-44 relative md:hidden st-btn w-9 h-9 rounded-lg flex items-center justify-center text-smartisan-muted hover:text-smartisan-ink"
+            className="tap-44 relative md:hidden st-btn st-btn-icon-md flex items-center justify-center text-smartisan-muted hover:text-smartisan-ink"
           >
             {menuOpen ? <X size={15} /> : <Menu size={15} />}
           </button>

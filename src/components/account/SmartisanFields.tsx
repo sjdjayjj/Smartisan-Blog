@@ -177,7 +177,7 @@ export function DateField({
               type="button"
               onClick={() => shiftMonth(-1)}
               aria-label="上个月"
-              className="st-btn w-7 h-7 rounded-md flex items-center justify-center text-smartisan-muted hover:text-smartisan-ink"
+              className="st-btn st-btn-icon-sm flex items-center justify-center text-smartisan-muted hover:text-smartisan-ink"
             >
               <ChevronLeft size={13} />
             </button>
@@ -194,7 +194,7 @@ export function DateField({
               type="button"
               onClick={() => shiftMonth(1)}
               aria-label="下个月"
-              className="st-btn w-7 h-7 rounded-md flex items-center justify-center text-smartisan-muted hover:text-smartisan-ink"
+              className="st-btn st-btn-icon-sm flex items-center justify-center text-smartisan-muted hover:text-smartisan-ink"
             >
               <ChevronRight size={13} />
             </button>

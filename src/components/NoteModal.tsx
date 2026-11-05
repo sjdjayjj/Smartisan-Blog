@@ -123,7 +123,7 @@ export default function NoteModal({ notes }: { notes: NoteShare[] }) {
             <button
               type="button"
               onClick={() => setPreview(null)}
-              className="tap-44-y relative st-btn mt-4 px-5 py-2 rounded-lg text-xs font-mono text-smartisan-ink"
+              className="tap-44-y relative st-btn st-btn-md mt-4 font-mono text-smartisan-ink"
             >
               完成
             </button>
@@ -148,7 +148,7 @@ export default function NoteModal({ notes }: { notes: NoteShare[] }) {
           data-modal-autofocus
           onClick={close}
           aria-label="关闭便签"
-          className="tap-44 absolute top-4 right-4 w-8 h-8 rounded-full bg-smartisan-socket border border-smartisan-line text-smartisan-muted hover:text-smartisan-ink flex items-center justify-center"
+          className="tap-44 absolute top-4 right-4 w-9 h-9 rounded-full bg-smartisan-socket border border-smartisan-line text-smartisan-muted hover:text-smartisan-ink flex items-center justify-center"
         >
           <X size={13} />
         </button>
@@ -188,7 +188,7 @@ export default function NoteModal({ notes }: { notes: NoteShare[] }) {
             type="button"
             onClick={downloadImage}
             disabled={exporting}
-            className="tap-44-y relative st-btn w-full py-2.5 rounded-lg text-xs font-mono text-smartisan-ink flex items-center justify-center gap-2 disabled:opacity-60"
+            className="tap-44-y relative st-btn st-btn-lg w-full font-mono text-smartisan-ink flex items-center justify-center gap-2 disabled:opacity-60"
           >
             <Download size={13} className="text-smartisan-red" />
             {exporting ? "正在导出长图…" : "导出便签长图 PNG"}
@@ -197,14 +197,14 @@ export default function NoteModal({ notes }: { notes: NoteShare[] }) {
             <button
               type="button"
               onClick={copy}
-              className="tap-44-y relative st-btn flex-1 py-2.5 rounded-lg text-xs font-mono text-smartisan-text flex items-center justify-center gap-2"
+              className="tap-44-y relative st-btn st-btn-lg flex-1 font-mono text-smartisan-text flex items-center justify-center gap-2"
             >
               复制便签正文
             </button>
             <button
               type="button"
               onClick={close}
-              className="tap-44-y relative st-btn px-4 py-2.5 rounded-lg text-xs font-mono text-smartisan-muted hover:text-smartisan-ink"
+              className="tap-44-y relative st-btn st-btn-lg font-mono text-smartisan-muted hover:text-smartisan-ink"
             >
               关闭
             </button>

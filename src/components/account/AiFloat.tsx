@@ -186,7 +186,7 @@ function Header({
         type="button"
         onClick={onClose}
         aria-label="关闭"
-        className="st-btn w-6 h-6 rounded-md flex items-center justify-center text-smartisan-muted hover:text-smartisan-ink shrink-0"
+        className="st-btn st-btn-icon-sm flex items-center justify-center text-smartisan-muted hover:text-smartisan-ink shrink-0"
       >
         <X size={11} />
       </button>

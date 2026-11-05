@@ -246,7 +246,7 @@ export default function PostReader({
           onClick={toggleLamp}
           aria-pressed={lamp}
           title="将正文切换为米白纸质阅读态"
-          className="tap-44-y relative st-btn inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[11px] font-sans text-smartisan-muted hover:text-smartisan-ink"
+          className="tap-44-y relative st-btn st-btn-sm st-btn-pill inline-flex items-center gap-2 font-sans text-smartisan-muted hover:text-smartisan-ink"
         >
           <Lamp size={12} className={lamp ? "text-smartisan-gold" : "text-smartisan-muted"} />
           {lamp ? "阅读灯已点亮" : "点亮阅读灯"}
@@ -287,7 +287,7 @@ export default function PostReader({
         <button
           type="button"
           onClick={shareArticle}
-          className="tap-44-y relative st-btn inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[11px] font-sans text-smartisan-muted hover:text-smartisan-ink"
+          className="tap-44-y relative st-btn st-btn-sm st-btn-pill inline-flex items-center gap-2 font-sans text-smartisan-muted hover:text-smartisan-ink"
         >
           <Share2 size={12} className="text-smartisan-red" />
           分享本文
@@ -354,7 +354,7 @@ export default function PostReader({
           window.scrollTo({ top: 0, behavior: "smooth" });
         }}
         aria-label="回到顶部"
-        className={`tap-44 fixed bottom-5 right-5 z-40 w-10 h-10 rounded-full st-btn border border-smartisan-line-strong text-smartisan-ink flex items-center justify-center shadow-lg transition-opacity duration-200 ${
+        className={`tap-44 fixed bottom-5 right-5 z-40 st-btn-icon-lg st-btn st-btn-pill border border-smartisan-line-strong text-smartisan-ink flex items-center justify-center shadow-lg transition-opacity duration-200 ${
           showTop ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
       >

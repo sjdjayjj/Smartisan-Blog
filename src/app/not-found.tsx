@@ -39,14 +39,14 @@ export default function NotFound() {
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3">
           <Link
             href="/"
-            className="st-btn px-5 py-2.5 rounded-lg text-xs font-mono text-smartisan-ink flex items-center justify-center gap-2"
+            className="st-btn st-btn-lg font-mono text-smartisan-ink flex items-center justify-center gap-2"
           >
             <Home size={13} className="text-smartisan-red" />
             返回自留地
           </Link>
           <Link
             href="/#articles"
-            className="st-btn px-5 py-2.5 rounded-lg text-xs font-mono text-smartisan-muted hover:text-smartisan-ink flex items-center justify-center gap-2"
+            className="st-btn st-btn-lg font-mono text-smartisan-muted hover:text-smartisan-ink flex items-center justify-center gap-2"
           >
             <Hammer size={13} className="text-smartisan-gold" />
             浏览九宫格文集
