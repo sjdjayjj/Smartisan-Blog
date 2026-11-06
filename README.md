@@ -72,7 +72,7 @@ Noto Serif SC 走自托管子集（见 [fonts.css](src/app/fonts.css)）：`core
 - **便签长图**：置顶便签可展开为“锤子便签”风格弹窗，一键复制纯文本到剪贴板并弹出 Toast；“导出便签长图 PNG”用 Canvas 直绘 750px 长图（不依赖 DOM 截图库，避免字体加载与跨域图片的不确定性）。
 - **阅读进度与回顶**：顶部细红线随滚动伸长；右下角水平仪浮标可一键回顶。
 - **灵感胶囊**：仅作者可见的悬浮入口（`canEdit` 包裹），可把闪念转成便签草稿。
-- **工匠电台**：滚花旋钮 + 播放按钮。播放时用粉红噪声（Pink Noise）合成环境底噪，旋钮缓慢旋转；旁边按钮切换频段并 Toast 提示当前 MHz。
+- **桌面模块**：与九宫格共用同一套列宽与间距，一行三张等高卡片——时钟（SSR 输出 `--:--`，挂载后校时，秒针角度累加不回甩）、天气（Open-Meteo 服务端取数、缓存 15 分钟、失败降级为「天气暂不可用」）、音乐（R2 自托管、原生 `<audio>`、曲目为空时显示空态）。
 - **Toast 通知**：右下角滑入，带金色描边，自动消失。
 - **动效克制**：只用 `fadeIn` / `scaleUp` / `riseIn` / `sealPress` 与旋转，且完整支持 `prefers-reduced-motion`。
 
@@ -169,7 +169,12 @@ CI（GitHub Actions）在每次 push / PR 时依次执行 `npm run build` → `n
 │   │   ├── ArticleBody.tsx      # 正文壳层（标题 / 元信息 / TOC / 正文）
 │   │   ├── PostReader.tsx       # 独立页阅读器（字号、阅读灯、回顶）
 │   │   ├── MarkdocContent.tsx   # Markdoc AST → React 的轻量渲染器
-│   │   ├── Gadget.tsx           # 工匠电台（滚花旋钮 + 粉红噪声）
+│   │   ├── gadgets
+│   │   │   ├── GadgetDeck.tsx     # 桌面模块容器（与九宫格同一 grid）
+│   │   │   ├── GadgetPanel.tsx    # 三张卡共用的外壳
+│   │   │   ├── ClockPanel.tsx     # 时钟（SSR 占位 + 挂载后校时）
+│   │   │   ├── WeatherPanel.tsx   # 天气（Open-Meteo + 失败降级）
+│   │   │   └── MusicPanel.tsx     # 音乐（R2 自托管 + 空态）
 │   │   ├── NoteModal.tsx        # 便签弹窗、复制正文、导出长图
 │   │   ├── WaxSeal.tsx          # 火漆正印（SVG，L/M 两档）
 │   │   ├── IdeaPills.tsx        # 灵感胶囊（仅作者，可转草稿）
@@ -197,13 +202,15 @@ CI（GitHub Actions）在每次 push / PR 时依次执行 `npm run build` → `n
 │   │   ├── waxSeal.ts           # 火漆印几何与压印文字排版（SVG / Canvas 共用）
 │   │   ├── waxSealCanvas.ts     # 火漆印在长图里的绘制
 │   │   ├── r2.ts                # R2 SigV4 上传
-│   │   ├── audio.ts             # AudioContext、点击音合成、粉红噪声与电台环境音
+│   │   ├── audio.ts             # AudioContext 与点击音合成（playMechanicalClick）
+│   │   ├── music.ts             # 音乐曲目清单（R2 公开地址，当前为空）
+│   │   ├── weather.ts           # Open-Meteo 取数、城市配置与 15 分钟缓存
 │   │   ├── clipboard.ts         # 复制兜底（Clipboard API → execCommand）
 │   │   ├── bus.ts               # 轻量事件总线（打开便签 / 弹出 Toast）
 │   │   ├── seo.ts               # 站点绝对地址、日期、JSON-LD 拼装
 │   │   ├── og-font-coverage.json # 分享图字体的码点覆盖区间
 │   │   ├── avatar.ts            # 头像地址整理
-│   │   └── site.ts              # 站点文案、导航项、分类元信息
+│   │   └── site.ts              # 站点文案、导航项、分类元信息、桌面模块默认城市
 │   ├── content/posts/*.mdoc    # 示例文章（Markdoc，可自由修改或删除）
 │   └── content/notes/*.mdoc    # 示例便签（与文章同构，可自由修改或删除）
 ```
@@ -339,7 +346,9 @@ GitHub OAuth App 的 **Authorization callback URL** 填 `${SITE_URL}/api/auth/gi
 - **换标题字体**：修改 `--font-serif`，同步调整 [fonts.css](src/app/fonts.css) 里的 `@font-face`；换 CJK 字体后重跑 `npm run fonts:subset` 生成新子集。
 - **改印章文案**：`<WaxSeal lines={["工匠出品", "骄傲制造"]} size={84} />`，字数自动决定排版（4 字压两行、2 字放大做主体）；轮廓与字号规则在 [waxSeal.ts](src/lib/waxSeal.ts)，改点集会同时影响页面与导出长图。
 - **加分类**：在 `keystatic.config.ts` 的 `category` 选项、`site.ts` 的 `categoryMeta` 与 `categoryFilters` 三处同步增加同一个 key。
-- **调整声效**：`playMechanicalClick(frequency, duration)` 的频率与时长在 [audio.ts](src/lib/audio.ts)，电台底噪音量在 `createPinkNoise(volume)` 调用处。
+- **调整声效**：`playMechanicalClick(frequency, duration)` 的频率与时长在 [audio.ts](src/lib/audio.ts)。
+- **加一首音乐**：把音频上传到 R2（对象需公开可读），在 [music.ts](src/lib/music.ts) 的 `musicTracks` 里追加 `{ title, artist, src }`，`src` 用 `R2_PUBLIC_BASE_URL` + 对象键；列表为空时面板显示「暂无曲目」。
+- **换天气城市**：优先用 `WEATHER_CITY`（仅展示名）/ `WEATHER_LATITUDE` / `WEATHER_LONGITUDE` 覆盖，留空则回落到 [site.ts](src/lib/site.ts) 里的默认城市。
 - **新增全局提示**：任意客户端组件调用 `showToast("...")` 即可，无需自己渲染组件。
 
 ---
@@ -373,7 +382,10 @@ GitHub OAuth App 的 **Authorization callback URL** 填 `${SITE_URL}/api/auth/gi
 | `R2_ACCESS_KEY_ID` | 否 | R2 Access Key |
 | `R2_SECRET_ACCESS_KEY` | 否 | R2 Secret Key |
 | `R2_BUCKET` | 否 | Bucket 名称 |
-| `R2_PUBLIC_BASE_URL` | 否 | 公开访问域名，如 `https://media.example.com` |
+| `R2_PUBLIC_BASE_URL` | 否 | 公开访问域名，如 `https://media.example.com`；音乐模块的 `src` 也基于它拼接 |
+| `WEATHER_CITY` | 否 | 首页天气卡片展示的城市名；留空用 `site.ts` 的默认城市 |
+| `WEATHER_LATITUDE` | 否 | 取数纬度；留空用默认城市坐标 |
+| `WEATHER_LONGITUDE` | 否 | 取数经度；留空用默认城市坐标 |
 | `CF_KV_NAMESPACE_ID` | 否 | AI 配置的 KV 命名空间 ID；不填则工坊 AI 设置入口隐藏 |
 | `CF_API_TOKEN` | 否 | 仅有 Workers KV 读写权限的 Cloudflare API Token |
 
@@ -396,7 +408,7 @@ GitHub OAuth App 的 **Authorization callback URL** 填 `${SITE_URL}/api/auth/gi
 
 ## 十、已知说明
 
-1. **音频需要用户手势**：首次点击开关或电台按钮后才会创建 `AudioContext`。
+1. **音频需要用户手势**：首次点击开关或音乐播放按钮后才会播放声音。
 2. **字体的覆盖边界**：字体已同源自托管，不依赖 Google Fonts；CJK 子集覆盖站点用字 + GB2312 全部 6763 个汉字，GB2312 之外的更生僻字（如「龘」）仍会回退系统衬线字体，布局不受影响。文章分享图使用单独裁出的 WOFF（GB2312 一级 + 符号，`npm run fonts:og` 可重新生成），标题超出该范围时回退站点根分享图。
 3. **Markdoc 序列化**：文章 AST 是 Markdoc 的 `Node` 类实例，传给客户端前必须做 JSON 往返；独立页在服务端渲染，首页弹窗在客户端渲染，两者共用 `MarkdocContent`，新增自定义节点时在它的 `switch` 中补分支即可。
 4. **原始 HTML 媒体**：Markdoc 不解析 HTML，`<video>` / `<audio>` 会以文本节点保留，由 `MarkdocContent` 识别 `src` 后渲染为原生播放器。

@@ -2,7 +2,7 @@ import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import FeaturedNote from "@/components/FeaturedNote";
 import ArticleGrid from "@/components/ArticleGrid";
-import Gadget from "@/components/Gadget";
+import GadgetDeck from "@/components/gadgets/GadgetDeck";
 import NoteModal from "@/components/NoteModal";
 import Toast from "@/components/Toast";
 import SoundEffects from "@/components/SoundEffects";
@@ -91,7 +91,7 @@ export default async function HomePage() {
         <Hero avatar={user?.avatar ?? null} login={user?.login ?? null} stats={stats} />
         <FeaturedNote notes={notes} canEdit={canEdit} />
         <ArticleGrid posts={postCards} degraded={degraded} />
-        <Gadget />
+        <GadgetDeck />
 
         {/* 关于作者与站点 */}
         <section id="about" className="st-well rounded-2xl p-6 sm:p-10 space-y-6 scroll-mt-24">

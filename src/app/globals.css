@@ -1005,6 +1005,61 @@ body {
   box-shadow: 0 0 0 2px rgba(212, 35, 42, 0.6);
 }
 
+/* ============ 播放器进度 / 音量滑轨 ============ */
+/* 与 .caliper-range 同一套金属滑块材质；宽度留给调用处的工具类控制 */
+.st-range {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 18px;
+  background: transparent;
+  cursor: pointer;
+}
+.st-range::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 2px;
+  border: 1px solid rgba(0, 0, 0, 0.6);
+  background: linear-gradient(180deg, #101113, #23262b);
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.9),
+    0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.st-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 9px;
+  height: 14px;
+  margin-top: -5px;
+  border-radius: 2px;
+  border: 1px solid rgba(0, 0, 0, 0.45);
+  background: linear-gradient(180deg, #e8d5a4 0%, #c5a059 45%, #7d6222 100%);
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.7),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+.st-range::-moz-range-track {
+  height: 4px;
+  border-radius: 2px;
+  border: 1px solid rgba(0, 0, 0, 0.6);
+  background: linear-gradient(180deg, #101113, #23262b);
+}
+.st-range::-moz-range-thumb {
+  width: 9px;
+  height: 14px;
+  border-radius: 2px;
+  border: 1px solid rgba(0, 0, 0, 0.45);
+  background: linear-gradient(180deg, #e8d5a4 0%, #c5a059 45%, #7d6222 100%);
+}
+.st-range:focus-visible {
+  outline: none;
+}
+.st-range:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 2px rgba(212, 35, 42, 0.6);
+}
+.st-range:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
 /* ============ 波段调谐旋钮 ============ */
 .tuner-knob {
   position: relative;
@@ -1758,6 +1813,17 @@ html[data-theme="light"] .caliper-range::-webkit-slider-runnable-track {
     0 1px 0 rgba(255, 255, 255, 0.8);
 }
 html[data-theme="light"] .caliper-range::-moz-range-track {
+  border-color: rgba(0, 0, 0, 0.18);
+  background: linear-gradient(180deg, #f6f3ec, #e2ddd1);
+}
+html[data-theme="light"] .st-range::-webkit-slider-runnable-track {
+  border-color: rgba(0, 0, 0, 0.18);
+  background: linear-gradient(180deg, #f6f3ec, #e2ddd1);
+  box-shadow:
+    inset 0 1px 2px rgba(94, 84, 66, 0.35),
+    0 1px 0 rgba(255, 255, 255, 0.8);
+}
+html[data-theme="light"] .st-range::-moz-range-track {
   border-color: rgba(0, 0, 0, 0.18);
   background: linear-gradient(180deg, #f6f3ec, #e2ddd1);
 }
