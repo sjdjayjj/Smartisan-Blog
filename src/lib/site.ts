@@ -24,11 +24,11 @@ export const navItems: ReadonlyArray<{ href: string; label: string; dot?: boolea
   { href: "/#gadget", label: "桌面模块 Gadgets" },
 ];
 
-/* 首页桌面模块的默认城市与时区；城市坐标可用 WEATHER_* 环境变量覆盖 */
+/* 首页桌面模块的兜底城市（浏览器定位失败时使用）与时区；可用 WEATHER_* 环境变量覆盖 */
 export const gadgetCity = {
-  name: "杭州",
-  latitude: 30.2741,
-  longitude: 120.1551,
+  name: "深圳",
+  latitude: 22.5431,
+  longitude: 114.0579,
   timeZone: "Asia/Shanghai",
 } as const;
 

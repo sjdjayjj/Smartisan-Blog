@@ -1,5 +1,12 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
+import {
+  KvError,
+  deleteKvValue,
+  isKvConfigured,
+  readKvValue,
+  writeKvValue,
+} from "@/lib/kv";
 
 /**
  * AI 供应商配置存储：单条 KV 记录 + AES-256-GCM 密文。
@@ -69,12 +76,6 @@ export class AiConfigError extends Error {
   }
 }
 
-interface KvEnv {
-  accountId: string;
-  namespaceId: string;
-  token: string;
-}
-
 interface EncryptedEnvelope {
   v: 1;
   alg: "AES-256-GCM";
@@ -82,18 +83,9 @@ interface EncryptedEnvelope {
   data: string;
 }
 
-function kvEnv(): KvEnv | null {
-  // 账号 ID 复用现有 R2_ACCOUNT_ID，避免再加一个变量
-  const accountId = (process.env.R2_ACCOUNT_ID ?? "").trim();
-  const namespaceId = (process.env.CF_KV_NAMESPACE_ID ?? "").trim();
-  const token = (process.env.CF_API_TOKEN ?? "").trim();
-  if (!accountId || !namespaceId || !token) return null;
-  return { accountId, namespaceId, token };
-}
-
 /** KV 两变量（外加复用的账号 ID 与加密密钥）是否齐全，用于生产就绪判断。 */
 export function isAiConfigStoreReady(): boolean {
-  return Boolean(kvEnv() && process.env.AUTH_SECRET);
+  return Boolean(isKvConfigured() && process.env.AUTH_SECRET);
 }
 
 /** dev 无 KV 时允许回退到本地临时文件；生产环境绝不回退。 */
@@ -210,42 +202,27 @@ function localConfigPath(): string {
   return path.join(process.cwd(), LOCAL_CONFIG_FILE);
 }
 
-function kvValueUrl(env: KvEnv, cacheTtlSeconds?: number): string {
-  const base = `https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(
-    env.accountId
-  )}/storage/kv/namespaces/${encodeURIComponent(env.namespaceId)}/values/${encodeURIComponent(
-    AI_CONFIG_KEY
-  )}`;
-  return cacheTtlSeconds === undefined ? base : `${base}?cacheTtl=${cacheTtlSeconds}`;
-}
-
-async function kvRead(env: KvEnv): Promise<Response> {
-  const init: RequestInit = {
-    headers: { Authorization: `Bearer ${env.token}` },
-    cache: "no-store",
-  };
-  // cacheTtl=0 用于压制 KV 边缘缓存（保存后立刻读到新值）；
-  // 若网关不接受该取值（Cloudflare 对 cacheTtl 有最小值限制），退回默认缓存并留日志痕。
-  const withTtl = await fetch(kvValueUrl(env, 0), init);
-  if (withTtl.status === 400) {
-    console.warn("[ai-config-store] cacheTtl=0 被拒绝，已退回默认缓存，写入后可能短时读到旧值");
-    return fetch(kvValueUrl(env), init);
+/**
+ * 把通用 KV 层抛出的错误映射回 AI 配置的错误码，保持接口契约不变。
+ * KvError 的 code 子集与 AiConfigErrorCode 完全一致。
+ */
+function mapKvError(error: unknown, fallback: AiConfigErrorCode): never {
+  if (error instanceof KvError) {
+    throw new AiConfigError(error.code, error.message);
   }
-  return withTtl;
+  if (error instanceof AiConfigError) throw error;
+  throw new AiConfigError(fallback, "AI 配置存储访问失败");
 }
 
 async function readRaw(): Promise<string | null> {
   const mode = aiConfigStorageMode();
 
   if (mode === "kv") {
-    const env = kvEnv();
-    if (!env) throw new AiConfigError("store_not_ready", "AI 配置存储未配置");
-    const response = await kvRead(env);
-    if (response.status === 404) return null;
-    if (!response.ok) {
-      throw new AiConfigError("kv_read_failed", `KV 读取失败（HTTP ${response.status}）`);
+    try {
+      return await readKvValue(AI_CONFIG_KEY);
+    } catch (error) {
+      mapKvError(error, "kv_read_failed");
     }
-    return response.text();
   }
 
   if (mode === "local") {
@@ -264,21 +241,12 @@ async function writeRaw(raw: string): Promise<void> {
   const mode = aiConfigStorageMode();
 
   if (mode === "kv") {
-    const env = kvEnv();
-    if (!env) throw new AiConfigError("store_not_ready", "AI 配置存储未配置");
-    const response = await fetch(kvValueUrl(env), {
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${env.token}`,
-        "Content-Type": "text/plain;charset=UTF-8",
-      },
-      body: raw,
-      cache: "no-store",
-    });
-    if (!response.ok) {
-      throw new AiConfigError("kv_write_failed", `KV 写入失败（HTTP ${response.status}）`);
+    try {
+      await writeKvValue(AI_CONFIG_KEY, raw);
+      return;
+    } catch (error) {
+      mapKvError(error, "kv_write_failed");
     }
-    return;
   }
 
   if (mode === "local") {
@@ -310,18 +278,12 @@ export async function deleteAiConfig(): Promise<void> {
   const mode = aiConfigStorageMode();
 
   if (mode === "kv") {
-    const env = kvEnv();
-    if (!env) throw new AiConfigError("store_not_ready", "AI 配置存储未配置");
-    const response = await fetch(kvValueUrl(env), {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${env.token}` },
-      cache: "no-store",
-    });
-    // 404 视为已删除，保持幂等
-    if (!response.ok && response.status !== 404) {
-      throw new AiConfigError("kv_write_failed", `KV 删除失败（HTTP ${response.status}）`);
+    try {
+      await deleteKvValue(AI_CONFIG_KEY);
+      return;
+    } catch (error) {
+      mapKvError(error, "kv_write_failed");
     }
-    return;
   }
 
   if (mode === "local") {

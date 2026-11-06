@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Disc3, Pause, Play, SkipBack, SkipForward, Volume2 } from "lucide-react";
 import GadgetPanel from "./GadgetPanel";
-import { musicTracks } from "@/lib/music";
+import type { MusicTrack } from "@/lib/music";
 
 const VOLUME_KEY = "smartisan:music-volume";
 const DEFAULT_VOLUME = 0.8;
@@ -45,7 +45,7 @@ function readStoredVolume() {
   }
 }
 
-export default function MusicPanel() {
+export default function MusicPanel({ tracks }: { tracks: MusicTrack[] }) {
   const [index, setIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -62,8 +62,8 @@ export default function MusicPanel() {
   const playingRef = useRef(false);
   const autoplayNextRef = useRef(false);
 
-  const track = musicTracks[index] ?? null;
-  const total = musicTracks.length;
+  const track = tracks[index] ?? null;
+  const total = tracks.length;
 
   useEffect(() => {
     if (audioRef.current && canAdjustVolume) audioRef.current.volume = volume;

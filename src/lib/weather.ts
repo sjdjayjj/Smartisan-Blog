@@ -12,6 +12,44 @@ export interface WeatherSnapshot {
   low: number;
 }
 
+export interface WeatherLocation {
+  name: string;
+  latitude: number;
+  longitude: number;
+}
+
+/**
+ * Open-Meteo 冷启动（DNS + TLS）实测可以到 7 秒级；
+ * 8 秒上限既兜住挂死的连接，也不会把一次正常的慢请求误判成失败。
+ * 失败只影响这一张卡，不阻塞页面其余部分。
+ */
+const REQUEST_TIMEOUT_MS = 8_000;
+
+/**
+ * 坐标保留两位小数（约 1.1km 网格）。
+ * 天气本身是网格数据，降精度不会影响结果；同时避免精确到米的坐标成为缓存键。
+ */
+export function normalizeCoordinate(value: number) {
+  return Math.round(value * 100) / 100;
+}
+
+function readEnvCoordinate(raw: string | undefined) {
+  const value = raw?.trim();
+  if (!value) return NaN;
+  return Number(value);
+}
+
+/** 定位失败时的兜底城市；名称与坐标可用 WEATHER_* 覆盖（只在服务端读取）。 */
+export function fallbackLocation(): WeatherLocation {
+  const latitude = readEnvCoordinate(process.env.WEATHER_LATITUDE);
+  const longitude = readEnvCoordinate(process.env.WEATHER_LONGITUDE);
+  return {
+    name: process.env.WEATHER_CITY?.trim() || gadgetCity.name,
+    latitude: Number.isFinite(latitude) ? latitude : gadgetCity.latitude,
+    longitude: Number.isFinite(longitude) ? longitude : gadgetCity.longitude,
+  };
+}
+
 interface OpenMeteoResponse {
   current?: {
     temperature_2m?: number;
@@ -27,42 +65,31 @@ interface OpenMeteoResponse {
   };
 }
 
-/** 城市名只用于展示，可用 WEATHER_CITY 覆盖；坐标决定实际取数位置。 */
-export function weatherCityName() {
-  return process.env.WEATHER_CITY?.trim() || gadgetCity.name;
-}
-
-function readConfig() {
-  const latitude = Number(process.env.WEATHER_LATITUDE);
-  const longitude = Number(process.env.WEATHER_LONGITUDE);
-  return {
-    latitude: Number.isFinite(latitude) ? latitude : gadgetCity.latitude,
-    longitude: Number.isFinite(longitude) ? longitude : gadgetCity.longitude,
-  };
-}
-
 /**
- * 服务端取数并缓存 15 分钟。任何异常都返回 null，由卡片降级展示，
- * 绝不让首页因为第三方天气接口不可用而渲染失败。
+ * 按坐标取数并缓存 15 分钟。天气是按网格发布的，同一网格内的请求共享缓存。
+ * 任何异常都返回 null，由卡片降级展示，绝不让首页因为第三方接口不可用而渲染失败。
  */
-export async function getWeather(): Promise<WeatherSnapshot | null> {
+export async function getWeather(
+  latitude: number,
+  longitude: number
+): Promise<WeatherSnapshot | null> {
   "use cache";
   cacheLife({ revalidate: 900 });
 
-  const { latitude, longitude } = readConfig();
   const params = new URLSearchParams({
-    latitude: latitude.toFixed(4),
-    longitude: longitude.toFixed(4),
+    latitude: latitude.toFixed(2),
+    longitude: longitude.toFixed(2),
     current:
       "temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,is_day",
     daily: "temperature_2m_max,temperature_2m_min",
-    timezone: gadgetCity.timeZone,
+    // 坐标可能不在中国时区，按坐标自动推断，日高低温才落在当地的一天里
+    timezone: "auto",
     forecast_days: "1",
   });
 
   try {
     const response = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`, {
-      signal: AbortSignal.timeout(4000),
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });
     if (!response.ok) return null;
 

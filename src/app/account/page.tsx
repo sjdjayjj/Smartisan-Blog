@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { CalendarDays, FilePlus2, FolderGit2, HardDrive, PencilLine, Settings, StickyNote } from "lucide-react";
+import { CalendarDays, FilePlus2, FolderGit2, HardDrive, ListMusic, PencilLine, Settings, StickyNote } from "lucide-react";
 import AccountHeader from "@/components/account/AccountHeader";
 import UserAvatar from "@/components/UserAvatar";
 import Toast from "@/components/Toast";
@@ -62,6 +62,13 @@ export default async function AccountPage() {
               </p>
             </div>
             <div className="sm:ml-auto flex items-center gap-2">
+              <Link
+                href="/account/music"
+                className="st-btn st-btn-lg flex items-center justify-center gap-2 font-sans text-smartisan-muted hover:text-smartisan-ink"
+              >
+                <ListMusic size={14} className="text-smartisan-gold" />
+                歌单管理
+              </Link>
               {isAiConfigAvailable() ? (
                 <Link
                   href="/account/settings"

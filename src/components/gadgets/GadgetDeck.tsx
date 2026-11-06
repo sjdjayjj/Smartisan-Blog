@@ -1,13 +1,17 @@
-import { Suspense } from "react";
 import ClockPanel from "./ClockPanel";
 import MusicPanel from "./MusicPanel";
-import WeatherPanel, { WeatherPanelAsync } from "./WeatherPanel";
+import WeatherPanel from "./WeatherPanel";
+import { loadMusicTracks } from "@/lib/music";
+import { fallbackLocation } from "@/lib/weather";
 
 /**
  * 桌面模块：一行三张等高卡片，列宽与上方「九宫格文集」完全一致。
  * md 断点两列会出现 2 + 1 的排布，这是预期结果；lg 起恢复一行三列。
  */
-export default function GadgetDeck() {
+export default async function GadgetDeck() {
+  // 歌单存 KV，读取失败时 loadMusicTracks 内部已回落静态默认值
+  const tracks = await loadMusicTracks();
+
   return (
     <section id="gadget" className="space-y-6 scroll-mt-24">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-smartisan-hairline pb-4">
@@ -29,10 +33,9 @@ export default function GadgetDeck() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         <ClockPanel />
-        <Suspense fallback={<WeatherPanel weather={null} pending />}>
-          <WeatherPanelAsync />
-        </Suspense>
-        <MusicPanel />
+        {/* 天气要浏览器定位，坐标拿不到时用服务端下发的兜底城市 */}
+        <WeatherPanel fallback={fallbackLocation()} />
+        <MusicPanel tracks={tracks} />
       </div>
     </section>
   );

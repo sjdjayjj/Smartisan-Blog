@@ -72,7 +72,7 @@ Noto Serif SC 走自托管子集（见 [fonts.css](src/app/fonts.css)）：`core
 - **便签长图**：置顶便签可展开为“锤子便签”风格弹窗，一键复制纯文本到剪贴板并弹出 Toast；“导出便签长图 PNG”用 Canvas 直绘 750px 长图（不依赖 DOM 截图库，避免字体加载与跨域图片的不确定性）。
 - **阅读进度与回顶**：顶部细红线随滚动伸长；右下角水平仪浮标可一键回顶。
 - **灵感胶囊**：仅作者可见的悬浮入口（`canEdit` 包裹），可把闪念转成便签草稿。
-- **桌面模块**：与九宫格共用同一套列宽与间距，一行三张等高卡片——时钟（SSR 输出 `--:--`，挂载后校时，秒针角度累加不回甩）、天气（Open-Meteo 服务端取数、缓存 15 分钟、失败降级为「天气暂不可用」）、音乐（R2 自托管、原生 `<audio>`、曲目为空时显示空态）。
+- **桌面模块**：与九宫格共用同一套列宽与间距，一行三张等高卡片——时钟（SSR 输出 `--:--`，挂载后校时，秒针角度累加不回甩）、天气（浏览器定位后按坐标向 `/api/weather` 取数、缓存 15 分钟；拒绝授权或超时回落深圳；城市名由 BigDataCloud 反查；仍失败则降级为「天气暂不可用」）、音乐（R2 自托管、原生 `<audio>`、曲目由工坊 `/account/music` 写入 KV，为空时显示空态）。
 - **Toast 通知**：右下角滑入，带金色描边，自动消失。
 - **动效克制**：只用 `fadeIn` / `scaleUp` / `riseIn` / `sealPress` 与旋转，且完整支持 `prefers-reduced-motion`。
 
@@ -143,6 +143,7 @@ CI（GitHub Actions）在每次 push / PR 时依次执行 `npm run build` → `n
 │   │   │   ├── page.tsx         # 用户中心：状态凹槽 + 文章管理
 │   │   │   ├── editor/page.tsx  # 文章编辑器（新增 / 编辑）
 │   │   │   ├── settings/page.tsx # AI 供应商设置（Key 加密写入 KV）
+│   │   │   ├── music/page.tsx   # 歌单管理（KV 存取 + R2 音频上传）
 │   │   │   └── notes/editor/page.tsx  # 便签编辑器（新增 / 编辑 / 删除）
 │   │   ├── api
 │   │   │   ├── auth/github/...  # OAuth 授权跳转与回调
@@ -151,6 +152,8 @@ CI（GitHub Actions）在每次 push / PR 时依次执行 `npm run build` → `n
 │   │   │   ├── posts            # 文章保存 / 删除（写回仓库）
 │   │   │   ├── notes            # 便签保存 / 删除（写回仓库）
 │   │   │   ├── upload           # 媒体上传到 R2
+│   │   │   ├── music            # 歌单读取 / 整份保存（KV）
+│   │   │   ├── weather          # 天气取数（lat/lon → Open-Meteo，15 分钟缓存）
 │   │   │   ├── settings/ai      # AI 供应商配置（GET/PUT/DELETE + 连通性测试）
 │   │   │   ├── ai/chat          # 摘要生成的流式转发（OpenAI-compatible）
 │   │   │   └── keystatic/...    # Keystatic API 路由（可选）
@@ -173,8 +176,8 @@ CI（GitHub Actions）在每次 push / PR 时依次执行 `npm run build` → `n
 │   │   │   ├── GadgetDeck.tsx     # 桌面模块容器（与九宫格同一 grid）
 │   │   │   ├── GadgetPanel.tsx    # 三张卡共用的外壳
 │   │   │   ├── ClockPanel.tsx     # 时钟（SSR 占位 + 挂载后校时）
-│   │   │   ├── WeatherPanel.tsx   # 天气（Open-Meteo + 失败降级）
-│   │   │   └── MusicPanel.tsx     # 音乐（R2 自托管 + 空态）
+│   │   │   ├── WeatherPanel.tsx   # 天气（浏览器定位 + 兜底城市 + 失败降级）
+│   │   │   └── MusicPanel.tsx     # 音乐（R2 自托管 + 服务端传入歌单 + 空态）
 │   │   ├── NoteModal.tsx        # 便签弹窗、复制正文、导出长图
 │   │   ├── WaxSeal.tsx          # 火漆正印（SVG，L/M 两档）
 │   │   ├── IdeaPills.tsx        # 灵感胶囊（仅作者，可转草稿）
@@ -190,10 +193,12 @@ CI（GitHub Actions）在每次 push / PR 时依次执行 `npm run build` → `n
 │   │       ├── SmartisanFields.tsx # 文章 / 便签共用的元信息字段
 │   │       ├── PostEditor.tsx     # 分屏编辑器 + 实时预览 + 媒体弹窗
 │   │       ├── AiSettings.tsx     # AI 供应商表单（多 provider / 掩码 / 测试）
+│   │       ├── MusicManager.tsx   # 歌单编辑器（排序 / 上传 / 试听 / 整份保存）
 │   │       └── NoteEditor.tsx     # 便签编辑器（单屏）
 │   ├── lib
 │   │   ├── auth.ts              # OAuth、白名单、HMAC 会话 Cookie
-│   │   ├── ai-config-store.ts   # AI Key 加解密存取（KV REST + AES-256-GCM）
+│   │   ├── ai-config-store.ts   # AI Key 加解密存取（AES-256-GCM，KV 读写走 kv.ts）
+│   │   ├── kv.ts                # Cloudflare KV REST 通用读写（AI 配置与歌单共用）
 │   │   ├── github.ts            # 文章读写、frontmatter、Markdoc 转换
 │   │   ├── post-source.ts       # 内容源选择（GitHub 仓库 / 本地回退）
 │   │   ├── headings.ts          # 正文标题提取与锚点 id
@@ -203,8 +208,8 @@ CI（GitHub Actions）在每次 push / PR 时依次执行 `npm run build` → `n
 │   │   ├── waxSealCanvas.ts     # 火漆印在长图里的绘制
 │   │   ├── r2.ts                # R2 SigV4 上传
 │   │   ├── audio.ts             # AudioContext 与点击音合成（playMechanicalClick）
-│   │   ├── music.ts             # 音乐曲目清单（R2 公开地址，当前为空）
-│   │   ├── weather.ts           # Open-Meteo 取数、城市配置与 15 分钟缓存
+│   │   ├── music.ts             # 歌单模型、校验、KV 优先读取与静态默认值兜底
+│   │   ├── weather.ts           # 兜底城市、坐标归一化与 Open-Meteo 15 分钟缓存取数
 │   │   ├── clipboard.ts         # 复制兜底（Clipboard API → execCommand）
 │   │   ├── bus.ts               # 轻量事件总线（打开便签 / 弹出 Toast）
 │   │   ├── seo.ts               # 站点绝对地址、日期、JSON-LD 拼装
@@ -277,6 +282,7 @@ CI（GitHub Actions）在每次 push / PR 时依次执行 `npm run build` → `n
 | `/account/editor?slug=xxx` | 编辑既有文章；支持删除（生成删除 commit） |
 | `/account/notes/editor` | 新增便签；支持删除（生成删除 commit） |
 | `/account/settings` | AI 供应商配置：多 Key、默认项、连通性测试（未配置 KV 时入口隐藏） |
+| `/account/music` | 歌单管理：新增 / 上传 / 排序 / 试听 / 整份保存到 KV |
 
 编辑器能力：
 
@@ -296,11 +302,59 @@ CI（GitHub Actions）在每次 push / PR 时依次执行 `npm run build` → `n
 - 单文件上限 60MB，允许 `image/*`、`video/*`、`audio/*`、`application/pdf`；
 - 未配置 R2 时上传接口返回 503，但编辑器仍可粘贴外部链接。
 
+#### 桌面模块歌单（工坊界面 + KV + R2）
+
+**1. 在哪里管理**：登录 `${SITE_URL}/account` → 工坊头部的「歌单管理」，进入 `/account/music`。新增、上传、排序、编辑、删除、试听都在界面上完成，点「保存歌单」整份提交，不需要改代码。
+
+- 存储：Cloudflare KV 单键 `music-playlist:v1`，整份歌单存一条记录；账号 ID 复用 `R2_ACCOUNT_ID`，命名空间与令牌复用 `CF_KV_NAMESPACE_ID` / `CF_API_TOKEN`，**不需要新增环境变量**。
+- 兜底：[music.ts](src/lib/music.ts) 的 `defaultMusicTracks`（静态空列表）。KV 未配置、无数据或读取失败时首页回落到它并显示空态，绝不报错。
+- 缓存：首页 `loadMusicTracks()` 带 `'use cache'` + 缓存标签 `music` + 60 秒过期；保存接口会 `revalidateTag("music")` 与 `revalidatePath("/")`，所以**保存后刷新首页立刻能看到新歌单**，60 秒只是标签失效时的兜底。
+
+**2. 条目字段**（在界面里逐条填写，顺序就是列表顺序，没有单独的 `id`）
+
+| 字段 | 必填 | 说明 |
+| --- | --- | --- |
+| 标题 | 是 | 卡片上显示的曲名，≤ 80 字符 |
+| 艺术家 | 否 | 艺术家；留空显示 `UNKNOWN ARTIST`，≤ 60 字符 |
+| 音频地址 | 是 | 完整 http(s) 地址，即 `R2_PUBLIC_BASE_URL` + 对象键，≤ 500 字符 |
+| 时长 | 否 | 写成 `mm:ss`（如 `"03:24"`）；上传后会自动读 `metadata` 回填，读不到可手填 |
+
+服务端校验：标题非空、地址必须 http(s) 且不内嵌账号密码、字段长度上限、最多 30 首；非法返回 400 并带 `code`（如 `title_required`、`src_invalid`、`too_many_tracks`）。
+
+**3. 音频放哪、怎么传**
+
+- 界面内上传（推荐）：新增/编辑曲目时点「上传到 R2」，走 [upload 路由](src/app/api/upload/route.ts) + [r2.ts](src/lib/r2.ts) 的 SigV4 直传（需管理员会话，单文件 ≤ 60MB，允许 `audio/*`），成功后自动回填地址并尝试读取时长。对象落在 `blog/{yyyy}/{mm}/` 下，无需强行搬进 `music/`。
+- 也可以手填外部地址；桶内若要统一命名，建议 `music/{曲名-slug}.mp3`，`src` = `R2_PUBLIC_BASE_URL`（不带尾部斜杠）+ `/` + 对象键。音频不是内容仓库的一部分，**不要**塞进 `public/`。
+- 控制台或 S3 兼容 CLI（不新增依赖）仍然可用：
+
+```bash
+# 变量取自 .env.local 的同名配置
+aws s3 cp ./track.mp3 "s3://$R2_BUCKET/music/track.mp3" \
+  --endpoint-url "https://$R2_ACCOUNT_ID.r2.cloudflarestorage.com"
+```
+
+**4. CORS 与 Range**
+
+- 原生 `<audio>` 播放**不需要 CORS**：公开对象直接给 `src` 即可。
+- 只有将来做频谱 / VU（用 `Web Audio` 读取采样）才需要在 bucket 的 CORS 策略里加 `Access-Control-Allow-Origin`。
+- 能不能拖动进度条取决于对象是否支持 Range 请求，验一条：
+
+```bash
+curl -s -o /dev/null -D - -H "Range: bytes=0-1023" \
+  "https://media.example.com/music/track.mp3" | head -n 5
+```
+
+返回 `206 Partial Content` 且带 `Content-Range: bytes 0-1023/...` 才能拖；返回 `200` 说明拿不到区间，进度条会跳回开头。
+
+**5. 版权**：只放自有版权或 CC0 / CC-BY 曲目，并在艺术家一栏标注出处与许可；不要放原版锤子科技素材或任何未授权音乐。
+
+**6. 移动端两句**：iOS 忽略 `audio.volume`（面板在 iOS 上隐藏音量滑杆，交给系统音量）；移动端必须用户手势后才能播放，所以面板与管理页的试听都不自动播放。
+
 ### 4. AI 供应商配置（加密 KV）
 
 [ai-config-store.ts](src/lib/ai-config-store.ts) 负责加密与存取，前端表单在 [AiSettings.tsx](src/components/account/AiSettings.tsx)：
 
-- 存储：单条 KV 记录 `ai-config:v1`，整值为 AES-256-GCM 密文；账号 ID 复用 `R2_ACCOUNT_ID`，通过 Cloudflare KV REST API 读写，不引入任何 SDK；
+- 存储：单条 KV 记录 `ai-config:v1`，整值为 AES-256-GCM 密文；KV REST 请求抽在 [kv.ts](src/lib/kv.ts)（歌单共用同一套客户端），账号 ID 复用 `R2_ACCOUNT_ID`，不引入任何 SDK；
 - 加密：主密钥由 `AUTH_SECRET` 经 HKDF（固定 salt + 用途标签）派生，不新增密钥变量；**轮换 `AUTH_SECRET` 会让旧密文无法解密，需要重新录入**；
 - 脱敏：接口只回传 `sk-****末4位`，明文 Key 不出服务端；编辑时 Key 留空表示沿用已保存值；
 - 连通性测试：对已保存的 provider 请求一次 `GET /models`，区分成功 / 401 / 余额不足 / 限流 / 超时；
@@ -347,8 +401,8 @@ GitHub OAuth App 的 **Authorization callback URL** 填 `${SITE_URL}/api/auth/gi
 - **改印章文案**：`<WaxSeal lines={["工匠出品", "骄傲制造"]} size={84} />`，字数自动决定排版（4 字压两行、2 字放大做主体）；轮廓与字号规则在 [waxSeal.ts](src/lib/waxSeal.ts)，改点集会同时影响页面与导出长图。
 - **加分类**：在 `keystatic.config.ts` 的 `category` 选项、`site.ts` 的 `categoryMeta` 与 `categoryFilters` 三处同步增加同一个 key。
 - **调整声效**：`playMechanicalClick(frequency, duration)` 的频率与时长在 [audio.ts](src/lib/audio.ts)。
-- **加一首音乐**：把音频上传到 R2（对象需公开可读），在 [music.ts](src/lib/music.ts) 的 `musicTracks` 里追加 `{ title, artist, src }`，`src` 用 `R2_PUBLIC_BASE_URL` + 对象键；列表为空时面板显示「暂无曲目」。
-- **换天气城市**：优先用 `WEATHER_CITY`（仅展示名）/ `WEATHER_LATITUDE` / `WEATHER_LONGITUDE` 覆盖，留空则回落到 [site.ts](src/lib/site.ts) 里的默认城市。
+- **加一首音乐**：登录 `/account` →「歌单管理」，在 `/account/music` 里新增 / 上传 / 排序后整份保存，首页刷新即可生效；完整步骤与字段说明见「七、3 桌面模块歌单」。
+- **换兜底城市**：天气默认按浏览器定位取数；拒绝授权或超时后才用兜底城市。兜底城市名与坐标用 `WEATHER_CITY` / `WEATHER_LATITUDE` / `WEATHER_LONGITUDE` 覆盖，留空回落到 [site.ts](src/lib/site.ts) 的默认城市（深圳）。
 - **新增全局提示**：任意客户端组件调用 `showToast("...")` 即可，无需自己渲染组件。
 
 ---
@@ -383,10 +437,10 @@ GitHub OAuth App 的 **Authorization callback URL** 填 `${SITE_URL}/api/auth/gi
 | `R2_SECRET_ACCESS_KEY` | 否 | R2 Secret Key |
 | `R2_BUCKET` | 否 | Bucket 名称 |
 | `R2_PUBLIC_BASE_URL` | 否 | 公开访问域名，如 `https://media.example.com`；音乐模块的 `src` 也基于它拼接 |
-| `WEATHER_CITY` | 否 | 首页天气卡片展示的城市名；留空用 `site.ts` 的默认城市 |
-| `WEATHER_LATITUDE` | 否 | 取数纬度；留空用默认城市坐标 |
-| `WEATHER_LONGITUDE` | 否 | 取数经度；留空用默认城市坐标 |
-| `CF_KV_NAMESPACE_ID` | 否 | AI 配置的 KV 命名空间 ID；不填则工坊 AI 设置入口隐藏 |
+| `WEATHER_CITY` | 否 | 定位失败时兜底城市的展示名；留空用 `site.ts` 的默认城市（深圳） |
+| `WEATHER_LATITUDE` | 否 | 兜底城市纬度；留空用默认城市坐标 |
+| `WEATHER_LONGITUDE` | 否 | 兜底城市经度；留空用默认城市坐标 |
+| `CF_KV_NAMESPACE_ID` | 否 | KV 命名空间 ID：AI 配置与歌单共用；不填则 AI 设置入口隐藏、歌单只能读静态默认值 |
 | `CF_API_TOKEN` | 否 | 仅有 Workers KV 读写权限的 Cloudflare API Token |
 
 ### 3. 部署后必做
@@ -416,6 +470,7 @@ GitHub OAuth App 的 **Authorization callback URL** 填 `${SITE_URL}/api/auth/gi
 6. **管理后台类型**：Keystatic 与 Next 16 的配置类型存在版本差异，[keystatic 页面](src/app/keystatic/[[...params]]/page.tsx) 中做了 `ComponentProps` 断言，升级依赖后可复查是否需要保留。
 7. **火漆印只有一份几何**：轮廓点集与压印排版在 `waxSeal.ts`，SVG 与 Canvas 同时引用它，任何“只改一边”的调整都会让页面与导出长图对不上；`ctx.letterSpacing` 在不支持的浏览器上会被忽略，仅影响字距，不影响布局。
 8. **小尺寸不用火漆**：压印文字低于 14px 时蜡质纹理会把字糊成一团，`≤24px` 的场景一律退回 `.st-seal` 朱印。
+9. **天气只定位一次**：卡片挂载时请求一次浏览器定位（8 秒上限），不做后台持续定位；坐标不写日志、不落盘、不入 localStorage，仅以两位小数（约 1km 网格）作为 `/api/weather` 的缓存键；拒绝授权或超时直接落到兜底城市。
 
 ---
 
