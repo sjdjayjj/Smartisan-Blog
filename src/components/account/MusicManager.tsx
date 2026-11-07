@@ -17,6 +17,7 @@ import {
   X,
 } from "lucide-react";
 import { showToast } from "@/lib/bus";
+import { uploadMedia } from "@/lib/upload-client";
 import type { MusicTrack } from "@/lib/music";
 
 /**
@@ -245,18 +246,7 @@ export default function MusicManager({
     setUploading(true);
     setError("");
     try {
-      const body = new FormData();
-      body.append("file", file);
-      const response = await fetch("/api/upload", { method: "POST", body });
-      const data = (await response.json()) as { url?: string; error?: string };
-      if (!response.ok || !data.url) {
-        const message = data.error ?? "上传失败";
-        setError(message);
-        showToast(message);
-        return;
-      }
-
-      const url = data.url;
+      const url = await uploadMedia(file);
       const duration = await readDuration(url);
       const fallbackTitle = file.name.replace(/\.[^.]+$/, "");
       setForm((prev) =>
@@ -276,9 +266,11 @@ export default function MusicManager({
             }
       );
       showToast("音频已上传，地址已回填");
-    } catch {
-      setError("上传失败，请检查网络或 R2 配置");
-      showToast("上传失败，请检查网络或 R2 配置");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "音频上传失败";
+      console.error("[music] 音频上传失败", error);
+      setError(message);
+      showToast(message);
     } finally {
       setUploading(false);
     }

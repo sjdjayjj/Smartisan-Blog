@@ -295,12 +295,21 @@ CI（GitHub Actions）在每次 push / PR 时依次执行 `npm run build` → `n
 
 ### 3. Cloudflare R2 媒体
 
-[r2.ts](src/lib/r2.ts) 手写 AWS SigV4 签名，直接调用 S3 兼容接口上传，不依赖 AWS SDK：
+[r2.ts](src/lib/r2.ts) 手写 AWS SigV4 签名，不依赖 AWS SDK：
 
 - 对象路径：`blog/{yyyy}/{mm}/{随机串}-{文件名}`；
-- 上传后返回 `${R2_PUBLIC_BASE_URL}/blog/...`，写入 Markdown；
+- 上传流程：`POST /api/upload` 只签发 15 分钟有效的预签名 PUT 地址，文件由浏览器**直连 R2** 上传（见 [upload-client.ts](src/lib/upload-client.ts)）；这样绕开 Vercel 函数 4.5MB 的请求体上限，60MB 音频才真正传得上去；
+- 上传后返回 `${R2_PUBLIC_BASE_URL}/blog/...`，写入 Markdown / 歌单；
 - 单文件上限 60MB，允许 `image/*`、`video/*`、`audio/*`、`application/pdf`；
 - 未配置 R2 时上传接口返回 503，但编辑器仍可粘贴外部链接。
+
+**R2 桶必须配置 CORS**（浏览器直传是跨域 PUT）：Cloudflare Dashboard → R2 → 目标桶 → Settings → CORS Policy：
+
+- Allowed Origins：站点域名（本地调试再加 `http://localhost:3000`）；
+- Allowed Methods：`PUT`；
+- Allowed Headers：`Content-Type`。
+
+没配 CORS 时上传会失败并提示「浏览器直连 R2 失败」，控制台里是 CORS 预检被拒。
 
 #### 桌面模块歌单（工坊界面 + KV + R2）
 
@@ -323,7 +332,7 @@ CI（GitHub Actions）在每次 push / PR 时依次执行 `npm run build` → `n
 
 **3. 音频放哪、怎么传**
 
-- 界面内上传（推荐）：新增/编辑曲目时点「上传到 R2」，走 [upload 路由](src/app/api/upload/route.ts) + [r2.ts](src/lib/r2.ts) 的 SigV4 直传（需管理员会话，单文件 ≤ 60MB，允许 `audio/*`），成功后自动回填地址并尝试读取时长。对象落在 `blog/{yyyy}/{mm}/` 下，无需强行搬进 `music/`。
+- 界面内上传（推荐）：新增/编辑曲目时点「上传到 R2」，走 [upload 路由](src/app/api/upload/route.ts) 签发预签名地址，再由浏览器直连 R2 上传（需管理员会话、桶已配置 CORS，单文件 ≤ 60MB，允许 `audio/*`），成功后自动回填地址并尝试读取时长。对象落在 `blog/{yyyy}/{mm}/` 下，无需强行搬进 `music/`。
 - 也可以手填外部地址；桶内若要统一命名，建议 `music/{曲名-slug}.mp3`，`src` = `R2_PUBLIC_BASE_URL`（不带尾部斜杠）+ `/` + 对象键。音频不是内容仓库的一部分，**不要**塞进 `public/`。
 - 控制台或 S3 兼容 CLI（不新增依赖）仍然可用：
 

@@ -61,42 +61,64 @@ export function buildObjectKey(fileName: string): string {
   return `blog/${yyyy}/${mm}/${nonce}-${safeFileName(fileName)}`;
 }
 
+function signingKey(secretAccessKey: string, dateStamp: string): Buffer {
+  return hmac(
+    hmac(hmac(hmac(`AWS4${secretAccessKey}`, dateStamp), "auto"), "s3"),
+    "aws4_request"
+  );
+}
+
+/** S3 的 canonical query 只认 RFC3986，encodeURIComponent 会漏掉 !'()* */
+function rfc3986(value: string): string {
+  return encodeURIComponent(value).replace(
+    /[!'()*]/g,
+    (char) => `%${char.charCodeAt(0).toString(16).toUpperCase()}`
+  );
+}
+
+/** 对象键对应的公开访问地址（自定义域名 / r2.dev 域名）。 */
+export function publicUrlFor(key: string): string {
+  const config = r2Config();
+  if (!config) throw new Error("R2 尚未配置");
+  return `${config.publicBase}/${encodeKey(key)}`;
+}
+
 /**
- * 上传对象并返回公开访问地址。
+ * 签发预签名 PUT 地址，让浏览器直连 R2 上传。
+ * 大文件不再经过 Serverless 函数，既绕开 Vercel 4.5MB 请求体上限，
+ * 也避免把整个音频读进函数内存。
  */
-export async function uploadToR2(
-  key: string,
-  body: Uint8Array,
-  contentType: string
-): Promise<string> {
+export function presignR2Put(key: string, expiresInSeconds = 900): string {
   const config = r2Config();
   if (!config) throw new Error("R2 尚未配置");
 
   const host = `${config.accountId}.r2.cloudflarestorage.com`;
   const canonicalUri = `/${config.bucket}/${encodeKey(key)}`;
-  const url = `https://${host}${canonicalUri}`;
-
   const amzDate = new Date().toISOString().replace(/[:-]|\.\d{3}/g, "");
   const dateStamp = amzDate.slice(0, 8);
-  const payloadHash = sha256Hex(body);
+  const scope = `${dateStamp}/auto/s3/aws4_request`;
 
-  const canonicalHeaders =
-    `content-type:${contentType}\n` +
-    `host:${host}\n` +
-    `x-amz-content-sha256:${payloadHash}\n` +
-    `x-amz-date:${amzDate}\n`;
-  const signedHeaders = "content-type;host;x-amz-content-sha256;x-amz-date";
+  // 参数名按字典序排列，直接决定最终签名是否被 R2 认可
+  const queryPairs: [string, string][] = [
+    ["X-Amz-Algorithm", "AWS4-HMAC-SHA256"],
+    ["X-Amz-Credential", `${config.accessKeyId}/${scope}`],
+    ["X-Amz-Date", amzDate],
+    ["X-Amz-Expires", String(expiresInSeconds)],
+    ["X-Amz-SignedHeaders", "host"],
+  ];
+  const canonicalQuery = queryPairs
+    .map(([name, value]) => `${rfc3986(name)}=${rfc3986(value)}`)
+    .join("&");
 
   const canonicalRequest = [
     "PUT",
     canonicalUri,
-    "",
-    canonicalHeaders,
-    signedHeaders,
-    payloadHash,
+    canonicalQuery,
+    `host:${host}\n`,
+    "host",
+    "UNSIGNED-PAYLOAD",
   ].join("\n");
 
-  const scope = `${dateStamp}/auto/s3/aws4_request`;
   const stringToSign = [
     "AWS4-HMAC-SHA256",
     amzDate,
@@ -104,30 +126,12 @@ export async function uploadToR2(
     sha256Hex(canonicalRequest),
   ].join("\n");
 
-  const signingKey = hmac(
-    hmac(hmac(hmac(`AWS4${config.secretAccessKey}`, dateStamp), "auto"), "s3"),
-    "aws4_request"
-  );
-  const signature = createHmac("sha256", signingKey).update(stringToSign).digest("hex");
+  const signature = createHmac(
+    "sha256",
+    signingKey(config.secretAccessKey, dateStamp)
+  )
+    .update(stringToSign)
+    .digest("hex");
 
-  const response = await fetch(url, {
-    method: "PUT",
-    headers: {
-      "Content-Type": contentType,
-      "x-amz-content-sha256": payloadHash,
-      "x-amz-date": amzDate,
-      Authorization:
-        `AWS4-HMAC-SHA256 Credential=${config.accessKeyId}/${scope}, ` +
-        `SignedHeaders=${signedHeaders}, Signature=${signature}`,
-      "Cache-Control": "public, max-age=31536000, immutable",
-    },
-    body: body as unknown as BodyInit,
-  });
-
-  if (!response.ok) {
-    const detail = await response.text();
-    throw new Error(`R2 上传失败：${response.status} ${detail.slice(0, 200)}`);
-  }
-
-  return `${config.publicBase}/${encodeKey(key)}`;
+  return `https://${host}${canonicalUri}?${canonicalQuery}&X-Amz-Signature=${signature}`;
 }

@@ -25,6 +25,7 @@ import {
 import { AiFloat, AiToolbar, type AnchorGetter, type AnchorRect } from "@/components/account/AiFloat";
 import { playMechanicalClick } from "@/lib/audio";
 import { showToast } from "@/lib/bus";
+import { uploadMedia } from "@/lib/upload-client";
 import { type CategoryKey } from "@/lib/site";
 import type { PostDraft } from "@/lib/github";
 import {
@@ -275,22 +276,17 @@ export default function PostEditor({
   const uploadFile = async (file: File) => {
     setUploading(true);
     try {
-      const form = new FormData();
-      form.append("file", file);
-      const response = await fetch("/api/upload", { method: "POST", body: form });
-      const data = (await response.json()) as { url?: string; error?: string };
-      if (!response.ok || !data.url) {
-        showToast(data.error ?? "上传失败");
-        return;
-      }
+      const url = await uploadMedia(file);
       const kind: "image" | "video" | "file" = file.type.startsWith("image/")
         ? "image"
         : file.type.startsWith("video/")
           ? "video"
           : "file";
-      insertMedia(data.url, kind, file.name);
-    } catch {
-      showToast("上传失败，请检查网络或 R2 配置");
+      insertMedia(url, kind, file.name);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "上传失败";
+      console.error("[editor] 媒体上传失败", error);
+      showToast(message);
     } finally {
       setUploading(false);
     }
